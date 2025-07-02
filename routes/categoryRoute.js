@@ -1,8 +1,9 @@
 const express = require("express");
 const auth = require("../middleware/jwt");
-const isAdmin = require("../middleware/isAdmin");
+
 const { addCategory,getAllCategory,getSingleCategory, deleteCategory, updatecategory } = require("../controller/admin/CategoryController");
 const { uploadCategory } = require("../config/cloudinary");
+const { isAdmin } = require("../middleware/isAdmin");
 const router = express.Router();
 
 router.post("/",auth,isAdmin,uploadCategory.single('image'),addCategory);
