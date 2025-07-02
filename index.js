@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 const app = express();
-
+const { swaggerUi, specs } = require("./config/swagger");
 const PORT = process.env.PORT || 5000;
 const logger = require('./config/logger')
 const authRoute = require('./routes/authRoutes');
@@ -22,6 +22,8 @@ app.use(express.json());
 app.use(helmet());
 app.use(cookieParser());
 // Your routes go here (add them before errorHandler)
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
 app.use("/api/auth",authRoute);
 app.use('/api/category',categoriesRoutes);
 app.use('/api/brand',brandRoutes);
