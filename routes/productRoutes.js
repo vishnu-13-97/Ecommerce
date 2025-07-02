@@ -67,9 +67,55 @@ router.get('/:id',getSingleProduct);
  *         description: Product creation failed
  */
 router.post('/', auth, isAdmin, uploadProduct.array("image", 5), addProduct);
-
-
+/**
+ * @swagger
+ * /products/{id}:
+ *   put:
+ *     summary: Update a product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               image:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       201:
+ *         description: Product updated successfully
+ *       400:
+ *         description: Product Updation failed
+ */
 router.put('/:id',auth,isAdmin,uploadProduct.array("image",5),updateProduct);
-router.delete('/:id',auth,isAdmin,deleteProduct);
+/**
+ * @swagger
+ * /products/{id}:
+ *   delete:
+ *     summary: Delete a product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the product to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found
+ */
+router.delete('/:id', auth, isAdmin, deleteProduct);
+
 
 module.exports=router;
