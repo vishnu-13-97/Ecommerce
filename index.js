@@ -17,6 +17,8 @@ const profileRoutes = require("./routes/profileRoutes");
 const userManagementRoutes = require('./routes/userManagementRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const WishlistRoutes = require('./routes/wishlistRoutes');
+const addressRoutes = require("./routes/addressRoutes");
+const orderRoutes = require('./routes/orderRoutes');
 // Middleware
 app.use(express.json());
 app.use(helmet());
@@ -32,6 +34,8 @@ app.use('/api/profile',profileRoutes);
 app.use('/api/admin',userManagementRoutes);
 app.use('/api/user/cart',cartRoutes);
 app.use('/api/user/wishlist',WishlistRoutes);
+app.use('/api/user/address',addressRoutes);
+app.use('/api/user/order',orderRoutes);
 
 // Error Handler 
 app.use(errorHandler);

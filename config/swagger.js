@@ -10,7 +10,16 @@ const options = {
       title: "Ecommerce API",
       version: "1.0.0",
       description: "API documentation for your ecommerce backend",
+    },components: {
+  securitySchemes: {
+    bearerAuth: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "JWT",
     },
+  },
+},
+
     servers: [
       {
         url: "http://localhost:5000/api", // Change to your base path
