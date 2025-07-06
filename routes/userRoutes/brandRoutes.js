@@ -1,8 +1,8 @@
 const express = require('express');
-const auth = require('../middleware/jwt');
-const { uploadBrand } = require('../config/cloudinary');
-const { addBrand, getAllBrands, getSingleBrand, deleteBrand, updateBrand } = require('../controller/admin/brandController');
-const { isAdmin } = require('../middleware/isAdmin');
+const auth = require("../../middleware/jwt");
+const { uploadBrand } = require('../../config/cloudinary');
+const { addBrand, getAllBrands, getSingleBrand, deleteBrand, updateBrand } = require('../../controller/admin/brandController');
+const { isAdmin } = require('../../middleware/isAdmin');
 const router = express.Router();
 
 /**

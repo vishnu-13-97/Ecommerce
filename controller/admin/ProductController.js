@@ -122,7 +122,8 @@ const updateProduct = async(req,res)=>{
   try {
     const {id}=req.params;
     const {name,description,price,stock,category,brand,isFeatured,isActive}=req.body
-const updateData ={name,description,price,stock,category,brand,isFeatured,isActive};
+
+    const updateData ={name,description,price,stock,category,brand,isFeatured,isActive};
 
     if (req.files && req.files.length > 0) {
      updateData.images = req.files.map(file => ({

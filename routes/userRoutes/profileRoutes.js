@@ -1,7 +1,7 @@
 const express = require("express");
-const auth = require("../middleware/jwt");
-const { getUserProfile, updateProfile } = require("../controller/user/profileController");
-const { uploadAvatar } = require("../config/cloudinary");
+const auth = require("../../middleware/jwt");
+const { getUserProfile, updateProfile } = require("../../controller/user/profileController");
+const { uploadAvatar } = require("../../config/cloudinary");
 const router = express.Router();
 
 /**

@@ -1,7 +1,7 @@
 const express = require("express");
-const auth = require("../middleware/jwt");
-const { getAllUsers, getSingleUser, blockUser, unBlockUser } = require("../controller/admin/UserManagementController");
-const { isAdmin } = require("../middleware/isAdmin");
+const auth = require("../../middleware/jwt");
+const { getAllUsers, getSingleUser, blockUser, unBlockUser } = require("../../controller/admin/UserManagementController");
+const { isAdmin } = require("../../middleware/isAdmin");
 const router = express.Router();
 
 /**

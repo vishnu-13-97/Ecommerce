@@ -52,8 +52,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    
-    addresses: [
+   otp: {type:String,
+   },
+  otpExpires:{type:Date},
+  addresses: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Address',

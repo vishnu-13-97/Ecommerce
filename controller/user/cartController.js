@@ -54,21 +54,10 @@ const addToCart = async (req, res) => {
       cart.totalPrice = cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     }
   
-   const updatedProduct = await Product.findOneAndUpdate(
-  { _id: productId, stock: { $gte: quantity } }, 
-  { $inc: { stock: -quantity } },
-  { new: true }
-);
-
-if (!updatedProduct) {
-  return res.status(400).json({
-    status: false,
-    message: "Insufficient stock or product not found"
-  });
-}
+  
 
     await cart.save();
-    logger.info("Stock updated successfully");
+   
     res.status(201).json({
       message: 'Product added to cart successfully',
       cart,
@@ -128,21 +117,8 @@ const removeFromCart = async(req,res)=>{
       cart.totalItems = cart.items.reduce((acc, item) => acc + item.quantity, 0);
     cart.totalPrice = cart.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
 
-    // Restock product
-    const updatedProduct = await Product.findOneAndUpdate(
-  { _id: productId}, 
-  { $inc: { stock: quantity } },
-  { new: true }
-);
+  
 
-
-if (!updatedProduct) {
-  return res.status(404).json({
-    status: false,
-    message: "Couldnot update product "
-  });
-}
-logger.info("Product updated successfully")
 
     await cart.save();
 

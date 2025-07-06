@@ -1,9 +1,9 @@
 const express = require('express');
-const { isUser, isAdmin } = require('../middleware/isAdmin');
-const { addAddress, updateAddress, removeAddress, getAddress } = require('../controller/user/addressController');
-const auth = require('../middleware/jwt');
-const validate = require('../middleware/validate');
-const { addressSchema } = require('../validators/addressValidator');
+const { isUser, isAdmin } = require('../../middleware/isAdmin');
+const { addAddress, updateAddress, removeAddress, getAddress } = require('../../controller/user/addressController');
+const auth = require('../../middleware/jwt');
+const validate = require('../../middleware/validate');
+const { addressSchema } = require('../../validators/addressValidator');
 
 const router = express.Router();
 

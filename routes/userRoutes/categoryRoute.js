@@ -1,8 +1,8 @@
 const express = require("express");
-const auth = require("../middleware/jwt");
-const { addCategory, getAllCategory, getSingleCategory, deleteCategory, updatecategory } = require("../controller/admin/CategoryController");
-const { uploadCategory } = require("../config/cloudinary");
-const { isAdmin } = require("../middleware/isAdmin");
+const auth = require("../../middleware/jwt");
+const { addCategory, getAllCategory, getSingleCategory, deleteCategory, updatecategory } = require("../../controller/admin/CategoryController");
+const { uploadCategory } = require("../../config/cloudinary");
+const { isAdmin } = require("../../middleware/isAdmin");
 const router = express.Router();
 
 /**

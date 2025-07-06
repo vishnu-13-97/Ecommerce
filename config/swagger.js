@@ -25,8 +25,21 @@ const options = {
         url: "http://localhost:5000/api", // Change to your base path
       },
     ],
-  },
-  apis: ["./routes/*.js"], // Adjust path if routes are in a different location
+    tags: [
+    { name: "Auth" },
+       { name: "Profile" },
+     { name: "Categories" },
+      { name: "Brand" },
+    { name: "Products" },
+    { name: "Cart" },
+    { name: "Wishlist" },
+   { name: "Orders" },
+    { name: "Address" },
+ { name: "AdminOrders" },
+  ],
+  }
+  ,
+  apis: ["./routes/**/*.js"], // Adjust path if routes are in a different location
 };
 
 const specs = swaggerJsDoc(options);

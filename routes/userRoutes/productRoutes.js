@@ -1,9 +1,9 @@
 const express = require('express');
-const auth = require('../middleware/jwt');
+const auth = require('../../middleware/jwt');
 
-const { uploadProduct } = require('../config/cloudinary');
-const { addProduct, getAllProducts,getSingleProduct, updateProduct ,deleteProduct} = require('../controller/admin/ProductController');
-const { isAdmin } = require('../middleware/isAdmin');
+const { uploadProduct } = require('../../config/cloudinary');
+const { addProduct, getAllProducts,getSingleProduct, updateProduct ,deleteProduct} = require('../../controller/admin/ProductController');
+const { isAdmin } = require('../../middleware/isAdmin');
 const router = express.Router();
 
 
