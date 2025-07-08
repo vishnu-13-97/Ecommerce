@@ -151,3 +151,4 @@ router.get('/get/:id', auth, isUser, getaProductReview);
  */
 router.put('/update/:id', auth, isUser, updateReview);
 
+module.exports = router;
