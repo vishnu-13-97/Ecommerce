@@ -83,6 +83,12 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 
 # 📬 API Endpoints Overview
 
+## 📑 API Documentation
+
+Access full API documentation at:  
+**GET** `/api-docs` — Swagger UI
+
+
  ## 👤 Auth
 
 POST /api/auth/register – User registration
@@ -118,6 +124,8 @@ GET /api/user/orders – Get user orders
 
 PUT /api/user/orders/:id – Update order status (admin)
 
+
+
 ## 🔐 All sensitive routes are protected using role-based middleware.
 
 
@@ -126,10 +134,14 @@ PUT /api/user/orders/:id – Update order status (admin)
  ```bash
 docker build -t ecommerce-api .
 docker run -p 5000:5000 ecommerce-api
+---
 
-# ✍️ Author
-## Vishnu CP
-## Node.js Developer | MERN Stack Enthusiast
+## ✍️ Author
+
+**Vishnu C P**  
+Node.js Developer | MERN Stack Enthusiast  
+[GitHub](https://github.com/vishnu-13-97) | [LinkedIn](https://www.linkedin.com/in/vishnu-c-21104b348/) 
+
 
 
 
