@@ -38,7 +38,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 
 ---
 
-## 🗂️ Folder Structure
+## <details> <summary>📁 Project Structure</summary>
 
 /ecommerce-backend
 │
@@ -53,6 +53,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 ├── index.js # Express setup and Server entry point
 └── README.md
 
+</details>
 
 ---
 
