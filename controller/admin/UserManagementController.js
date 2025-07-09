@@ -1,5 +1,6 @@
 
 const logger = require("../.././config/logger");
+const redis = require("../../config/redis");
 const User = require("../../models/user");
 
 const getAllUsers = async(req,res)=>{
@@ -7,7 +8,19 @@ const getAllUsers = async(req,res)=>{
 
     try {
         
+      const cashedUsers = await redis.get('all_users');
+      const parsedUsers = JSON.parse(cashedUsers);
+      if(cashedUsers){
+        return res.status(200).json({
+      success: true,
+      count: parsedUsers.length,
+      data: parsedUsers,
+    });
+      }
  const user = await User.find({role:"user"}).select("-password");
+ await redis.set('all_users',JSON.stringify(cashedUsers),'EX',3600);
+
+ logger.info('data fetched from db and stored in redis');
 
     res.status(200).json({
       success: true,

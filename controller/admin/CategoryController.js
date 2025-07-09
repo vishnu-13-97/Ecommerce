@@ -1,6 +1,7 @@
 const Category = require("../../models/category");
 const logger = require('../../config/logger');
 const { default: slugify } = require("slugify");
+const redis = require("../../config/redis");
 
 const addCategory = async (req, res) => {
 logger.info("add Category route hit..")
@@ -50,7 +51,18 @@ logger.info("add Category route hit..")
 const getAllCategory = async(req,res)=>{
   logger.info("Get Category Routes hit ...");
   try {
+    const cashedCategory = await redis.get('all_category');
+    const parsedData = JSON.parse(cashedCategory);
+    if(cashedCategory){
+        return  res.status(200).json({
+      success: true,
+      count: parsedData.length,
+      data: parsedData,
+    });
+    }
     const category = await Category.find({});
+    await redis.set('all_category',JSON.stringify(category),'EX',3600);
+    logger.info('data fetched from db and stored to redis');
   res.status(200).json({
       success: true,
       count: category.length,
@@ -113,7 +125,7 @@ const updatecategory = async (req, res) => {
         message: "Category not found",
       });
     }
-
+ await redis.del('all_category');
     res.status(200).json({
       success: true,
       message: "Category updated successfully",
@@ -143,7 +155,7 @@ const deleteCategory = async (req, res) => {
         message: "Category not found",
       });
     }
-
+    await redis.del('all_category');
     res.status(200).json({
       success: true,
       message: "Category deleted successfully",

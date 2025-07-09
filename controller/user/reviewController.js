@@ -1,4 +1,5 @@
 const logger = require("../../config/logger");
+const redis = require("../../config/redis");
 const Product = require("../../models/products");
 const Review = require("../../models/review");
 
@@ -170,6 +171,17 @@ const updateReview = async (req, res) => {
 const getAllReview = async(req,res)=>{
     logger.info("getAllreview Route hit...");
     try {
+
+      const cashedReview = await redis.get('all_reviews');
+      const parsedReview = JSON.parse(cashedReview);
+
+      if(cashedReview){
+        return  res.status(200).json({
+        success:true,
+        message:"review fetched successfully",
+        reviews:parsedReview
+       }) 
+      }
         const review = await Review.find({});
 
         if(!review){
@@ -180,6 +192,8 @@ const getAllReview = async(req,res)=>{
       });
         }
 
+        await redis.set('all_reviews',JSON.stringify(review),'EX',3600);
+        logger.info("data fetched from db and stored in redis");
        res.status(200).json({
         success:true,
         message:"review fetched successfully",

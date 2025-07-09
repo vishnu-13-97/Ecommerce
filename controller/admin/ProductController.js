@@ -1,7 +1,7 @@
 const { default: slugify } = require("slugify");
 const logger = require("../../config/logger");
 const Product = require("../../models/products");
-
+const redis = require('../../config/redis');
 
 const addProduct = async(req,res)=>{
     logger.info("addProduct Route hit..")
@@ -71,7 +71,22 @@ try {
 const getAllProducts = async(req,res)=>{
 logger.info("GetAllProduct Route hit...");
 try {
+
+  const cashedProduct = await redis.get('all_products');
+  const parsedData = JSON.parse(cashedProduct);
+   
+  if(cashedProduct){
+    return res.status(200).json({
+      success: true,
+      count: parsedData.length,
+      data: parsedData
+    });
+  }
+
   const product = await Product.find({});
+  await redis.set('all_products', JSON.stringify(product), 'EX', 3600);
+
+  logger.info('Data Fetched from db and stored in redis');
   res.status(200).json({
       success: true,
       count: product.length,
@@ -146,7 +161,7 @@ const updateProduct = async(req,res)=>{
         message: "Product not found",
       });
     }
-
+await redis.del('all_products');
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
@@ -177,6 +192,8 @@ try {
       message:"product not found"
     })
   }
+
+  await redis.del('all_products');
    res.status(200).json({
       success: true,
       message: "Product deleted successfully",

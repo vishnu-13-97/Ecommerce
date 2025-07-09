@@ -1,6 +1,7 @@
 const { default: slugify } = require("slugify");
 const logger = require("../../config/logger");
 const Brand = require("../../models/brand");
+const redis = require("../../config/redis");
 
 
 
@@ -62,12 +63,25 @@ const existing = await Brand.findOne({ name });
 const getAllBrands = async (req, res) => {
   logger.info("getAllBrands Route hit.."); 
   try {
+
+    const cashedBrands = await redis.get('all_brands');
+    const parsedData = JSON.parse(cashedBrands);
+    if(cashedBrands){
+      return res.status(200).json({
+      success: true,
+      count: parsedData.length,
+      data: parsedData
+    });
+    }
     const brands = await Brand.find({});
+    await redis.set('all_brands',JSON.stringify(brands),'EX',3600);
+    logger.info('all brands fetched from db and stored to redis');
     res.status(200).json({
       success: true,
       count: brands.length,
       data: brands,
     });
+
   } catch (error) {
     logger.error("Error fetching brands: ", error); 
     res.status(500).json({
@@ -110,7 +124,7 @@ const deleteBrand = async (req, res) => {
         message: "Brand not found",
       });
     }
-
+await redis.del('all_brands');
     res.status(200).json({
       success: true,
       message: "Brand deleted successfully",
@@ -154,7 +168,7 @@ const updateBrand = async (req, res) => {
         message: "Brand not found",
       });
     }
-
+await redis.del('all_brands');
     res.status(200).json({
       success: true,
       message: "Brand updated successfully",
