@@ -38,7 +38,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 
 --- 
 
-## <details> <summary>📁 Project Structure
+## <details> <summary>📁 Project Structure</summary>
 ```
 /ecommerce-backend
 │
@@ -52,7 +52,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 ├── .env # Environment variables
 ├── index.js # Express setup and Server entry point
 └── README.md
-</summary>
+
 </details>
 
 ---
@@ -81,7 +81,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 
 
 
-# 📬 API Endpoints Overview
+## 📬 API Endpoints Overview
 
 ## 📑 API Documentation
 
