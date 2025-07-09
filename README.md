@@ -36,7 +36,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 | Joi        | Input validation |
 | Docker     | Containerization (optional) |
 
----
+--- 
 
 ## <details> <summary>📁 Project Structure</summary>
 
@@ -67,6 +67,7 @@ A powerful and scalable backend REST API for an e-commerce application built usi
    ```bash
    npm install
 3. **Create .env file**
+   ```bash
    PORT=5000
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
@@ -129,6 +130,11 @@ docker run -p 5000:5000 ecommerce-api
 # ✍️ Author
 ## Vishnu CP
 ## Node.js Developer | MERN Stack Enthusiast
+
+
+
+
+
 
 
 
