@@ -136,6 +136,7 @@ docker build -t ecommerce-api .
 docker run -p 5000:5000 ecommerce-api
 ---
 
+```
 ## ✍️ Author
 
 **Vishnu C P**  
