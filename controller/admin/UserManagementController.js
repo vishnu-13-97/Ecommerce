@@ -21,6 +21,7 @@ const getAllUsers = async(req,res)=>{
  await redis.set('all_users',JSON.stringify(cashedUsers),'EX',3600);
 
  logger.info('data fetched from db and stored in redis');
+ 
 
     res.status(200).json({
       success: true,
