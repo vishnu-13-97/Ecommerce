@@ -88,6 +88,15 @@ A powerful and scalable backend REST API for an e-commerce application built usi
 Access full API documentation at:  
 **GET** `/api-docs` — Swagger UI
 
+## 🔐 Test Credentials
+
+**👤 Admin**
+email : admin@gmail.com
+password : 123456
+
+**👥 User**
+email : user@gmail.com
+password : 123456
 
  ## 👤 Auth
 
