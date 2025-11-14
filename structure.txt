@@ -1,0 +1,82 @@
+
+C:.
+ª   .env
+ª   .gitignore
+ª   index.js
+ª   package-lock.json
+ª   package.json
+ª   README.md
+ª   structure.txt
+ª   
++---config
+ª       cloudinary.js
+ª       db.js
+ª       logger.js
+ª       ratelimit.js
+ª       swagger.js
+ª       
++---controller
+ª   ª   authController.js
+ª   ª   
+ª   +---admin
+ª   ª       brandController.js
+ª   ª       CategoryController.js
+ª   ª       OrderManagementController.js
+ª   ª       ProductController.js
+ª   ª       UserManagementController.js
+ª   ª       
+ª   +---user
+ª           addressController.js
+ª           cartController.js
+ª           orderController.js
+ª           profileController.js
+ª           reviewController.js
+ª           wishListController.js
+ª           
++---logs
+ª       combined.log
+ª       error.log
+ª       
++---middleware
+ª       errorHandler.js
+ª       isAdmin.js
+ª       isBlocked.js
+ª       jwt.js
+ª       validate.js
+ª       
++---models
+ª       address.js
+ª       brand.js
+ª       cart.js
+ª       category.js
+ª       order.js
+ª       products.js
+ª       review.js
+ª       user.js
+ª       wishlist.js
+ª       
++---routes
+ª   ª   authRoutes.js
+ª   ª   
+ª   +---adminRoutes
+ª   ª       orderRoutes.js
+ª   ª       userManagementRoutes.js
+ª   ª       
+ª   +---userRoutes
+ª           addressRoutes.js
+ª           brandRoutes.js
+ª           cartRoutes.js
+ª           categoryRoute.js
+ª           orderRoutes.js
+ª           productRoutes.js
+ª           profileRoutes.js
+ª           reviewRoutes.js
+ª           wishlistRoutes.js
+ª           
++---utils
+ª       sendMail.js
+ª       
++---validators
+        addressValidator.js
+        userValidator.js
+        
