@@ -30,6 +30,7 @@ import Categories from "./pages/admin/Categories";
 import Users from "./pages/admin/Users";
 import BrandForm from "./pages/admin/AdminBranForm";
 import CategoryForm from "./pages/admin/AdminCategoryForm";
+import ProductForm from "./pages/admin/AdminProductForm";
 
 const App = () => {
   const location = useLocation();
@@ -62,7 +63,9 @@ const App = () => {
               <AdminLayout>
                 <Routes>
                   <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="products" element={<Products />} />
+                  <Route path="product" element={<Products />} />
+                   <Route path="product/new" element={<ProductForm />} />
+                    <Route path="product/edit/:productId" element={<ProductForm />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="brand" element={<Brands />} />
                   <Route path="brand/new" element={<BrandForm/>}/>
@@ -70,7 +73,7 @@ const App = () => {
                   <Route path="category" element={<Categories />} />
                      <Route path="category/new" element={<CategoryForm />} />
                         <Route path="category/edit/:categoryId" element={<CategoryForm />} />
-                  <Route path="users" element={<Users />} />
+                  <Route path="user" element={<Users />} />
                 </Routes>
               </AdminLayout>
             </ProtectedAdminRoute>

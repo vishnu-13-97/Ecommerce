@@ -18,7 +18,7 @@ export default function Products() {
     setLoading(true);
     setError("");
     try {
-      const res = await API.get("/products");
+      const res = await API.get("/product");
       const data = res.data.data || res.data;
        console.log("ppp",data);
        
@@ -35,6 +35,7 @@ export default function Products() {
           p.images?.[0]?.url ||
           "https://via.placeholder.com/60?text=No+Image",
       }));
+console.log("ghb",formatted);
 
       setProducts(formatted);
     } catch (err) {
@@ -48,7 +49,7 @@ export default function Products() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
-      await API.delete(`/products/${id}`);
+      await API.delete(`/product/${id}`);
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Error deleting product:", err);
@@ -128,8 +129,8 @@ export default function Products() {
                       />
                     </td>
                     <td>{product.name}</td>
-                    <td>{product.category?.name}</td>
-                    <td>{product.brand?.name}</td>
+                    <td>{product.category}</td>
+                    <td>{product.brand}</td>
                     <td>{product.price?.toLocaleString()}</td>
                     <td>{product.stock}</td>
                     <td>

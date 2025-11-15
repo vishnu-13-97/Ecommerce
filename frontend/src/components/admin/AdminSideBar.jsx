@@ -4,11 +4,11 @@ export default function AdminSidebar() {
   const menuItems = [
     { name: "Home", path: "/" },
     { name: "Dashboard", path: "/admin/dashboard" },
-    { name: "Products", path: "/admin/products" },
+    { name: "Products", path: "/admin/product" },
     { name: "Orders", path: "/admin/orders" },
     { name: "Brands", path: "/admin/brand" },
     { name: "Categories", path: "/admin/category" },
-    { name: "Users", path: "/admin/users" },
+    { name: "Users", path: "/admin/user" },
   ];
 
   return (

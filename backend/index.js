@@ -44,7 +44,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api/auth", authRoute);
 app.use('/api/category', categoriesRoutes);
 app.use('/api/brand', brandRoutes);
-app.use('/api/products', productRoutes);
+app.use('/api/product', productRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin/user', userManagementRoutes);
 app.use('/api/user/cart', cartRoutes);

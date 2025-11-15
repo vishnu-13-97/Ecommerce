@@ -8,7 +8,7 @@ const getAllUsers = async (req, res) => {
   logger.info("getAllUsers route hit...");
 
   try {
-    const users = await User.find({ role: "user" }).select("-password");
+    const users = await User.find().select("-password");
 
     if (!users || users.length === 0) {
       logger.warn("No users found in the database");

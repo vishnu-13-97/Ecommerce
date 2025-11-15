@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 import API from "../api-helper/Axioxinstance";
 const FruitsSection = () => {
@@ -27,7 +27,7 @@ const FruitsSection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await API.get("/products");
+        const res = await API.get("/product");
         if (res.data && Array.isArray(res.data.data)) {
           setProducts(res.data.data);
         }
@@ -39,10 +39,11 @@ const FruitsSection = () => {
   }, []);
 
   // Filtered products
-  const filteredProducts =
-    activeTab === "all"
-      ? products
-      : products.filter((p) => p.category && p.category === activeTab);
+const filteredProducts =
+  activeTab === "all"
+    ? products
+    : products.filter((p) => p.category?._id === activeTab);
+
 
   // Handle product click
   const handleProductClick = (id) => {
@@ -129,9 +130,8 @@ const FruitsSection = () => {
                           className="text-white bg-secondary px-3 py-1 rounded position-absolute"
                           style={{ top: "10px", left: "10px" }}
                         >
-                          {categories.find(
-                            (cat) => cat._id === product.category
-                          )?.name || "Unknown"}
+                        {categories.find((cat) => cat._id === product.category?._id)?.name || "Unknown"}
+
                         </div>
                         <div className="p-4 border border-secondary border-top-0 rounded-bottom">
                           <h4>{product.name}</h4>
