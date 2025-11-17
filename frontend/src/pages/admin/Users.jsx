@@ -21,15 +21,19 @@ export default function Users() {
     }
   };
 
-  const handleToggleBlock = async (id) => {
+  // ⬇ FIXED — Uses correct API based on current block status
+  const handleToggleBlock = async (id, isBlocked) => {
     try {
-      const res = await API.put(`/admin/user/block/${id}`);
+      const url = isBlocked
+        ? `/admin/user/unblock/${id}`  // if already blocked → unblock
+        : `/admin/user/block/${id}`;   // if not blocked → block
+
+      const res = await API.put(url);
       alert(res.data.message);
 
-      // reload user list
       loadUsers();
     } catch (err) {
-      console.error("Block toggle failed", err);
+      console.error("Block/Unblock failed", err);
     }
   };
 
@@ -76,9 +80,7 @@ export default function Users() {
                   </td>
 
                   <td>{u.name}</td>
-
                   <td>{u.email}</td>
-
                   <td>{u.phone || "-"}</td>
 
                   <td className="fw-bold">{u.role}</td>
@@ -105,7 +107,7 @@ export default function Users() {
                       className={`btn btn-sm ${
                         u.isBlocked ? "btn-success" : "btn-warning"
                       } me-2`}
-                      onClick={() => handleToggleBlock(u._id)}
+                      onClick={() => handleToggleBlock(u._id, u.isBlocked)}
                     >
                       {u.isBlocked ? "Unblock" : "Block"}
                     </button>

@@ -9,7 +9,7 @@ const ProductDetails = () => {
 
   useEffect(() => {
     API
-      .get(`/products/${id}`)
+      .get(`/product/${id}`)
       .then((res) => {
         if (res.data && res.data.data) setProduct(res.data.data);
       })

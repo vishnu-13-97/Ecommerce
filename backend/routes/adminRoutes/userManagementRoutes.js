@@ -71,7 +71,7 @@ router.get('/:id', auth, isAdmin, getSingleUser);
  *       404:
  *         description: User not found
  */
-router.post('/block/:id', auth, isAdmin, blockUser);
+router.put('/block/:id', auth, isAdmin, blockUser);
 
 /**
  * @swagger
@@ -94,6 +94,6 @@ router.post('/block/:id', auth, isAdmin, blockUser);
  *       404:
  *         description: User not found
  */
-router.post('/unblock/:id', auth, isAdmin, unBlockUser);
+router.put('/unblock/:id', auth, isAdmin, unBlockUser);
 
 module.exports = router;
