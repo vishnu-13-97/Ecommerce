@@ -279,6 +279,7 @@ const userProfile = async (req, res) => {
         name: userData.name,
         email: userData.email,
         role: userData.role,
+        phone:userData.phone,
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
       },
