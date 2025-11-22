@@ -6,6 +6,7 @@ const authController = require('../controller/authController');
 const { LoginLimiter, registerLimiter } = require('../config/ratelimit');
 const auth = require('../middleware/jwt');
 const isBlocked = require('../middleware/isBlocked');
+const { uploadAvatar } = require('../config/cloudinary');
 
 /**
  * @swagger
@@ -158,6 +159,9 @@ router.post('/login', LoginLimiter, validate(loginSchema), authController.login)
  *         description: Unauthorized
  */
 router.get('/profile', auth, isBlocked, authController.userProfile);
+
+
+router.put('/update-profile',auth,uploadAvatar.single('image'),authController.updateUserProfile)
 
 /**
  * @swagger

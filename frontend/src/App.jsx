@@ -31,6 +31,7 @@ import Users from "./pages/admin/Users";
 import BrandForm from "./pages/admin/AdminBranForm";
 import CategoryForm from "./pages/admin/AdminCategoryForm";
 import ProductForm from "./pages/admin/AdminProductForm";
+import EditProfile from "./pages/EditProfile";
 
 const App = () => {
   const location = useLocation();
@@ -51,6 +52,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit-profile" element={<EditProfile/>}/>
         <Route path="/cart" element={<Cart />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="*" element={<NotFound />} />

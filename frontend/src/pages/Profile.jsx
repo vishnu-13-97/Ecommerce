@@ -10,38 +10,34 @@ const Profile = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  // ---- Logout ----
   const handleLogout = async () => {
     try {
-      await logout(); 
-      navigate("/");  // redirect home after logout
+      await logout();
+      navigate("/");
     } catch (err) {
       console.error("Logout failed:", err.message);
     }
   };
 
-  // ---- Fetch Profile Data ----
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await API.get("/auth/profile");
 
         setUser({
+          id: res.data.user.id,
           name: res.data.user.name,
           email: res.data.user.email,
-         
           phone: res.data.user.phone || "Not Provided",
           avatar: res.data.user.avatar || "/img/team-1.jpg",
-          country: res.data.user.country || "Not Provided",
-          state: res.data.user.state || "Not Provided",
-          city: res.data.user.city || "Not Provided",
-          hobbies: res.data.user.hobbies || [],
+          addresses: res.data.user.addresses || [],
           joinedOn: new Date(res.data.user.createdAt).toLocaleDateString(),
         });
 
         setLoading(false);
       } catch (error) {
         console.error("Profile Fetch Error:", error);
+        setUser(null);
         setLoading(false);
       }
     };
@@ -49,19 +45,17 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  // ---- Loading UI ----
-  if (loading) {
-    return <p className="text-center py-5">Loading profile...</p>;
-  }
+  if (loading) return <p className="text-center py-5">Loading profile...</p>;
 
-  // ---- Error UI ----
-  if (!user) {
-    return <p className="text-center py-5 text-danger">Failed to load profile</p>;
-  }
+  if (!user)
+    return (
+      <p className="text-center py-5 text-danger">
+        Failed to load profile. Please try again.
+      </p>
+    );
 
   return (
     <>
-      {/* Page Header */}
       <div className="container-fluid page-header py-5">
         <h1 className="text-center text-white display-6">My Profile</h1>
         <ol className="breadcrumb justify-content-center mb-0">
@@ -70,14 +64,12 @@ const Profile = () => {
         </ol>
       </div>
 
-      {/* Profile Section */}
       <div className="container-fluid py-5">
         <div className="container py-5">
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="bg-light p-5 rounded shadow-sm">
-                
-                {/* User Avatar + Name */}
+
                 <div className="text-center mb-4">
                   <img
                     src={user.avatar}
@@ -92,53 +84,42 @@ const Profile = () => {
 
                 <hr className="my-4" />
 
-                {/* User Details */}
                 <div className="row g-3">
                   <div className="col-md-6">
                     <label className="form-label text-dark fw-bold">Phone</label>
                     <p className="form-control bg-white border-0">{user.phone}</p>
                   </div>
 
-                  <div className="col-md-6">
-                    <label className="form-label text-dark fw-bold">Country</label>
-                    <p className="form-control bg-white border-0">{user.country}</p>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label text-dark fw-bold">State</label>
-                    <p className="form-control bg-white border-0">{user.state}</p>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label text-dark fw-bold">City</label>
-                    <p className="form-control bg-white border-0">{user.city}</p>
-                  </div>
-
-                  {/* Hobbies */}
-                  <div className="col-12">
-                    <label className="form-label text-dark fw-bold">Hobbies</label>
-                    <div className="d-flex flex-wrap gap-2">
-                      {user.hobbies.length > 0 ? (
-                        user.hobbies.map((hobby, idx) => (
-                          <span
-                            key={idx}
-                            className="badge bg-secondary text-light px-3 py-2"
-                          >
-                            {hobby}
-                          </span>
-                        ))
-                      ) : (
-                        <p>No hobbies added</p>
-                      )}
-                    </div>
+                  {/* Addresses */}
+                  <div className="col-12 mt-4">
+                    <label className="form-label text-dark fw-bold">Addresses</label>
+                    {user.addresses.length > 0 ? (
+                      user.addresses.map((address, i) => (
+                        <div key={i} className="border rounded p-3 mb-3 bg-white">
+                          <p className="mb-1 fw-bold">{address.fullName}</p>
+                          <p className="mb-1">{address.street}</p>
+                          <p className="mb-1">
+                            {address.city}, {address.state}
+                          </p>
+                          <p className="mb-1">
+                            {address.country} – {address.pincode}
+                          </p>
+                          <small className="text-muted">Phone: {address.phone}</small>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No addresses added</p>
+                    )}
                   </div>
                 </div>
 
-                {/* Buttons */}
                 <div className="text-center mt-5">
-                  <a href="/edit-profile" className="btn btn-primary px-4 py-2">
+                  <button
+                    onClick={() => navigate('/profile/edit-profile')}
+                    className="btn btn-primary ms-3 px-4 py-2"
+                  >
                     Edit Profile
-                  </a>
+                  </button>
 
                   <button
                     onClick={handleLogout}

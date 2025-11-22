@@ -3,7 +3,7 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const sendMail = require('../utils/sendMail');
 const bcrypt = require('bcrypt');
-
+const cloudinary = require('../config/cloudinary')
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -266,27 +266,95 @@ const login = async (req, res) => {
 const userProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const userData = await User.findById(userId).select('-password');
+
+    const userData = await User.findById(userId)
+      .select("-password")
+      .populate("addresses");  // <-- Populate full address details
 
     if (!userData) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      message: 'User profile fetched successfully',
+    return res.status(200).json({
+      message: "User profile fetched successfully",
       user: {
         id: userData._id,
         name: userData.name,
         email: userData.email,
         role: userData.role,
-        phone:userData.phone,
+        phone: userData.phone,
+        avatar: userData.avatar?.url || null,  // <-- return URL only
+        gender: userData.gender,
+        dob: userData.dob,
+        isVerified: userData.isVerified,
+        addresses: userData.addresses || [],
+        hobbies: userData.hobbies || [],
+        country: userData.country,
+        state: userData.state,
+        city: userData.city,
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
       },
     });
   } catch (error) {
-    logger.error('User Profile Error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("User Profile Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  logger.info("Update profile route hit...");
+
+  try {
+    const userId = req.user.id;
+    const { name, phone } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn("User not found for update");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+   
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+
+    if (req.file) {
+      try {
+      
+        if (user.avatar?.public_id) {
+          await cloudinary.uploader.destroy(user.avatar.public_id);
+        }
+
+        
+        user.avatar = {
+          public_id: req.file.filename,
+          url: req.file.path,
+        };
+      } catch (err) {
+        logger.error("Image upload error", err);
+        return res.status(500).json({ message: "Avatar upload failed" });
+      }
+    }
+
+    await user.save();
+    logger.info(`User profile updated: ${user.email}`);
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        avatar: user.avatar?.url || null,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    logger.error("Profile Update Error", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -307,5 +375,6 @@ module.exports = {
   resetPassword,
   login,
   userProfile,
+  updateUserProfile,
   logOut,
 };
