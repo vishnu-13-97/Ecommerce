@@ -59,7 +59,9 @@ const Signup = () => {
 
     try {
       const res = await register(formData); // ✅ using context
+
       setMessage(res.message || "OTP sent to your email!");
+       localStorage.setItem("registerEmail", formData.email);
       setTimeout(() => {
         navigate("/verify-otp");
       }, 1500);

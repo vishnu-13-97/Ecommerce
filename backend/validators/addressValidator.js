@@ -18,6 +18,10 @@ const addressSchema = Joi.object({
   landmark: Joi.string().max(50).allow('', null),
   city: Joi.string().required(),
   state: Joi.string().required(),
+
+  // Added as per model
+  country: Joi.string().default('India').required(),
+
   isDefault: Joi.boolean().default(false),
 });
 

@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from "react-router-dom";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // Public pages
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
@@ -32,6 +33,8 @@ import BrandForm from "./pages/admin/AdminBranForm";
 import CategoryForm from "./pages/admin/AdminCategoryForm";
 import ProductForm from "./pages/admin/AdminProductForm";
 import EditProfile from "./pages/EditProfile";
+import AddressesList from "./pages/AddressList";
+import AddAddress from "./pages/AddAddress";
 
 const App = () => {
   const location = useLocation();
@@ -39,6 +42,7 @@ const App = () => {
 
   return (
     <>
+        <ToastContainer position="top-center" autoClose={2000} />
       <Spinner />
       {!isAdminRoute && <Navbar />}
       {!isAdminRoute && <SearchModal />}
@@ -53,6 +57,8 @@ const App = () => {
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/edit-profile" element={<EditProfile/>}/>
+          <Route path="/profile/addresses" element={<AddressesList />} />
+          <Route path="/profile/addresses/add" element={<AddAddress/>}/>
         <Route path="/cart" element={<Cart />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="*" element={<NotFound />} />
@@ -85,6 +91,7 @@ const App = () => {
 
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <BackToTopButton />}
+       
     </>
   );
 };

@@ -269,11 +269,14 @@ const userProfile = async (req, res) => {
 
     const userData = await User.findById(userId)
       .select("-password")
-      .populate("addresses");  // <-- Populate full address details
+      .populate({path: "addresses",
+        model: "Address"});
 
     if (!userData) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    const defaultAddress = userData.addresses.find(addr => addr.isDefault) || null;
 
     return res.status(200).json({
       message: "User profile fetched successfully",
@@ -283,11 +286,12 @@ const userProfile = async (req, res) => {
         email: userData.email,
         role: userData.role,
         phone: userData.phone,
-        avatar: userData.avatar?.url || null,  // <-- return URL only
+        avatar: userData.avatar?.url || null,
         gender: userData.gender,
         dob: userData.dob,
         isVerified: userData.isVerified,
-        addresses: userData.addresses || [],
+        addresses: userData.addresses,  // 👈 FIXED
+        defaultAddress,                // 👈 optional
         hobbies: userData.hobbies || [],
         country: userData.country,
         state: userData.state,
@@ -301,6 +305,7 @@ const userProfile = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 const updateUserProfile = async (req, res) => {
   logger.info("Update profile route hit...");

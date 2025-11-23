@@ -30,9 +30,10 @@ const addressSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-     city: {
+     country: {
       type: String,
       default:"India",
+      required:true
     },
     state: {
       type: String,

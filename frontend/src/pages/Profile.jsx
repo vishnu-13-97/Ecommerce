@@ -26,8 +26,7 @@ const Profile = () => {
 
         setUser({
           id: res.data.user.id,
-          name: res.data.user.name,
-          email: res.data.user.email,
+          name: res.data.user.name,          email: res.data.user.email,
           phone: res.data.user.phone || "Not Provided",
           avatar: res.data.user.avatar || "/img/team-1.jpg",
           addresses: res.data.user.addresses || [],
@@ -93,23 +92,37 @@ const Profile = () => {
                   {/* Addresses */}
                   <div className="col-12 mt-4">
                     <label className="form-label text-dark fw-bold">Addresses</label>
-                    {user.addresses.length > 0 ? (
-                      user.addresses.map((address, i) => (
-                        <div key={i} className="border rounded p-3 mb-3 bg-white">
-                          <p className="mb-1 fw-bold">{address.fullName}</p>
-                          <p className="mb-1">{address.street}</p>
-                          <p className="mb-1">
-                            {address.city}, {address.state}
-                          </p>
-                          <p className="mb-1">
-                            {address.country} – {address.pincode}
-                          </p>
-                          <small className="text-muted">Phone: {address.phone}</small>
-                        </div>
-                      ))
-                    ) : (
-                      <p>No addresses added</p>
-                    )}
+                   {user.addresses.length > 0 ? (
+  user.addresses.map((address, i) => (
+    <div key={i} className="border rounded p-3 mb-3 bg-white">
+      <p className="mb-1 fw-bold">{address.fullName}</p>
+      <p className="mb-1">{address.addressLine}</p>
+
+      {address.landmark && (
+        <p className="mb-1">Landmark: {address.landmark}</p>
+      )}
+
+      <p className="mb-1">
+        {address.city}, {address.state}
+      </p>
+      <p className="mb-1">
+        {address.country} – {address.pincode}
+      </p>
+      <small className="text-muted">Phone: {address.mobile}</small>
+
+      {address.isDefault && (
+        <span className="badge bg-success ms-2">Default</span>
+      )}
+    </div>
+  ))
+) : (
+  <p>No addresses added</p>
+)}
+
+                    <a href="/profile/addresses" className="btn btn-primary mt-3">
+  Manage Addresses
+</a>
+
                   </div>
                 </div>
 
