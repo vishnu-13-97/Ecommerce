@@ -117,42 +117,50 @@ const handleLogout = async () => {
                 ></i>
 
                 {openUserMenu && (
-                  <div
-                    className="dropdown-menu show mt-3 shadow-sm"
-                    style={{
-                      right: 0,
-                      left: "auto",
-                      borderRadius: "8px",
-                      minWidth: "180px",
-                      padding: "0.5rem 0",
-                    }}
-                  >
-                    {user ? (
-                      <>
-                        <span className="dropdown-item-text fw-bold ps-3">
-                          👋 Hello, {user.name}
-                        </span>
-                        <Link className="dropdown-item" to="/profile">Profile</Link>
-                        <Link className="dropdown-item" to="/orders">My Orders</Link>
+  <div
+    className="dropdown-menu show mt-3 shadow-sm"
+    style={{
+      right: 0,
+      left: "auto",
+      borderRadius: "8px",
+      minWidth: "180px",
+      padding: "0.5rem 0",
+    }}
+  >
+    {user ? (
+      <>
+        <span className="dropdown-item-text fw-bold ps-3">
+          👋 Hello, {user.name}
+        </span>
 
-                        {/* Admin Panel */}
-                        {user.role === "admin" && (
-                          <Link className="dropdown-item text-warning" to="/admin">
-                            Admin Panel
-                          </Link>
-                        )}
+        {/* USER ONLY */}
+        {user.role === "user" && (
+          <>
+            <Link className="dropdown-item" to="/profile">Profile</Link>
+            <Link className="dropdown-item" to="/orders">My Orders</Link>
+          </>
+        )}
 
-                       <button className="dropdown-item text-danger" onClick={handleLogout}>Logout</button>
+        {/* ADMIN ONLY */}
+        {user.role === "admin" && (
+          <Link className="dropdown-item text-warning" to="/admin">
+            Admin Panel
+          </Link>
+        )}
 
-                      </>
-                    ) : (
-                      <>
-                        <Link className="dropdown-item" to="/login">Login</Link>
-                        <Link className="dropdown-item" to="/signup">Register</Link>
-                      </>
-                    )}
-                  </div>
-                )}
+        <button className="dropdown-item text-danger" onClick={handleLogout}>
+          Logout
+        </button>
+      </>
+    ) : (
+      <>
+        <Link className="dropdown-item" to="/login">Login</Link>
+        <Link className="dropdown-item" to="/signup">Register</Link>
+      </>
+    )}
+  </div>
+)}
+
               </div>
             </div>
           </div>
