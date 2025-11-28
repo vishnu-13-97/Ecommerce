@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,18 +9,19 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const { user, login } = useAuth();
 
-  const { user,login } = useAuth();
+  // Get redirect path from URL
+  const redirectPath =
+    new URLSearchParams(location.search).get("redirect") || "/";
 
-useEffect(() => {
-  if (user) navigate("/"); 
-}, [user]);
+  useEffect(() => {
+    if (user) navigate(redirectPath);
+  }, [user, navigate, redirectPath]);
 
-  // -------------------------------
-  // GOOGLE LOGIN INITIALIZATION
-  // -------------------------------
   useEffect(() => {
     const handleGoogleResponse = async (response) => {
       try {
@@ -35,7 +35,7 @@ useEffect(() => {
         const data = await res.json();
         if (res.ok) {
           setMessage("Google login successful!");
-          setTimeout(() => navigate("/"), 1500);
+          setTimeout(() => navigate(redirectPath), 1500);
         } else {
           setMessage(data.message || "Google login failed.");
         }
@@ -66,27 +66,20 @@ useEffect(() => {
     } else {
       initializeGoogleSignIn();
     }
-  }, [navigate]);
+  }, [navigate, redirectPath]);
 
-  // -------------------------------
-  // HANDLE INPUT CHANGE
-  // -------------------------------
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // -------------------------------
-  // HANDLE FORM SUBMIT
-  // -------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await login(formData); // using context
+      const res = await login(formData);
       setMessage(res.message || "Logged in successfully!");
-      setTimeout(() => navigate("/"), 1500);
-      console.log("User logged in successfully.");
+      setTimeout(() => navigate(redirectPath), 1500);
     } catch (error) {
       console.error(error);
       setMessage(error.message || "Something went wrong. Try again.");
@@ -95,23 +88,16 @@ useEffect(() => {
     }
   };
 
-  // -------------------------------
-  // RENDER
-  // -------------------------------
   return (
     <>
-      {/* Page Header */}
       <div className="container-fluid page-header py-5">
         <h1 className="text-center text-white display-6">Login</h1>
         <ol className="breadcrumb justify-content-center mb-0">
-          <li className="breadcrumb-item">
-            <a href="/">Home</a>
-          </li>
+          <li className="breadcrumb-item"><a href="/">Home</a></li>
           <li className="breadcrumb-item active text-white">Login</li>
         </ol>
       </div>
 
-      {/* Login Form Section */}
       <div className="container-fluid py-5">
         <div className="container py-5">
           <div className="row justify-content-center">
@@ -170,6 +156,7 @@ useEffect(() => {
                     <div id="googleLoginDiv"></div>
                   </div>
                 </form>
+
               </div>
             </div>
           </div>

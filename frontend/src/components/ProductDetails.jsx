@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import API from "../api-helper/Axioxinstance";
+import { useAuth } from "../context/AuthContext";
 
-import API from '../api-helper/Axioxinstance'
 const ProductDetails = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    API
-      .get(`/product/${id}`)
+    API.get(`/product/${id}`)
       .then((res) => {
         if (res.data && res.data.data) setProduct(res.data.data);
       })
@@ -20,7 +21,7 @@ const ProductDetails = () => {
 
   return (
     <div className="container py-5 position-relative">
-      {/* ✅ Back Button */}
+      {/* Back Button */}
       <button
         onClick={() => navigate("/")}
         className="btn btn-outline-success rounded-pill px-4 py-2 position-absolute"
@@ -34,7 +35,7 @@ const ProductDetails = () => {
         <i className="fa fa-arrow-left me-2"></i> Back to Home
       </button>
 
-      {/* ✅ Product Section */}
+      {/* Product Section */}
       <div
         className="row justify-content-center align-items-center mt-5"
         style={{
@@ -72,14 +73,14 @@ const ProductDetails = () => {
           <h4 className="text-success fw-semibold mb-3">₹{product.price}</h4>
 
           <p className="mb-2">
-            <strong>Category:</strong>{" "}
-            {product.category?.name || "N/A"}
+            <strong>Category:</strong> {product.category?.name || "N/A"}
           </p>
           <p className="mb-4">
             <strong>Brand:</strong> {product.brand?.name || "N/A"}
           </p>
 
           <div className="d-flex gap-3 flex-wrap">
+          
             <button
               className="btn btn-success rounded-pill px-4 py-2"
               style={{ fontWeight: "500" }}
@@ -88,9 +89,17 @@ const ProductDetails = () => {
               Add to Cart
             </button>
 
+          
             <button
               className="btn btn-outline-success rounded-pill px-4 py-2"
               style={{ fontWeight: "500" }}
+              onClick={() => {
+                if (!user) {
+                  navigate(`/login?redirect=/payment/${product._id}`);
+                } else {
+                  navigate(`/payment/${product._id}`);
+                }
+              }}
             >
               <i className="fa fa-bolt me-2"></i>
               Buy Now
