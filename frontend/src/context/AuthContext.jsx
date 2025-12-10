@@ -6,6 +6,7 @@ import {
   logoutUser,
   getCurrentUser,
 } from "../api-helper/auth-Api";
+import API from "../api-helper/Axioxinstance";
 
 
 const AuthContext = createContext();
@@ -30,38 +31,44 @@ useEffect(() => {
 
 
   // Register and store pending email
-  const register = async (data) => {
-    try {
-      const res = await registerUser(data);
-      setPendingEmail(data.email);
-      return res;
-    } catch (err) {
-      throw err;
-    }
-  };
+const register = async (data) => {
+  const res = await registerUser(data);
+  setPendingEmail(data.email);
+  return res;
+};
+
 
   // Verify OTP and log user in
-  const verifyOtpHandler = async (otp) => {
-    try {
-      const res = await verifyOtp(pendingEmail, otp);
-      setUser(res.user);
-      setPendingEmail("");
-      return res;
-    } catch (err) {
-      throw err;
-    }
-  };
+const verifyOtpHandler = async (otp) => {
+  const res = await verifyOtp(pendingEmail, otp);
+  setUser(res.user);
+  setPendingEmail("");
+  return res;
+};
+
 
   // Login
-  const login = async (data) => {
-    try {
-      const res = await loginUser(data);
-      setUser(res.user);
-      return res;
-    } catch (err) {
-      throw err;
+const login = async (data) => {
+  try {
+    const res = await loginUser(data);
+
+    setUser(res.user);
+
+    const guestCart = localStorage.getItem("guest_cart");
+
+    if (guestCart) {
+      await API.post("user/cart/merge", {
+        userId: res.user._id,
+        cartItems: JSON.parse(guestCart),
+      });
+      localStorage.removeItem("guest_cart");
     }
-  };
+
+    return res;
+  } catch (err) {
+    throw err;
+  }
+};
 
   // Logout
   const logout = async () => {

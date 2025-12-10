@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require("../../middleware/jwt");
 const { isUser } = require('../../middleware/isAdmin');
-const { addToCart, removeFromCart, viewCart } = require('../../controller/user/cartController');
+const { addToCart, removeFromCart, viewCart, mergeCart } = require('../../controller/user/cartController');
 const router = express.Router();
 
 /**
@@ -39,6 +39,8 @@ const router = express.Router();
  *         description: Invalid input or product not found
  */
 router.post('/', auth, isUser, addToCart);
+
+router.post('/merge',auth,isUser,mergeCart)
 
 /**
  * @swagger
@@ -82,5 +84,6 @@ router.delete('/', auth, isUser, removeFromCart);
  *         description: Unauthorized
  */
 router.get('/', auth, isUser, viewCart);
+
 
 module.exports = router;

@@ -106,6 +106,7 @@ console.log("data",data);
       navigate("/admin/product");
     } catch (err) {
       console.error(err);
+       console.error("Submit error:", err.response?.data || err.message);
       alert("Something went wrong");
     } finally {
       setLoading(false);
