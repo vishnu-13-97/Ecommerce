@@ -29,7 +29,7 @@ export default function AddressesList() {
     const ok = window.confirm("Delete this address?");
     if (!ok) return;
     try {
-      await API.delete(`/address/remove/${id}`);
+      await API.delete(`/user/address/${id}`);
       toast.success("Address deleted");
       fetchAddresses();
     } catch (err) {
@@ -84,7 +84,7 @@ export default function AddressesList() {
 
               <div className="d-flex flex-column align-items-end">
                 <div className="mb-2">
-                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => navigate(`/profile/address/edit/${addr._id}`)}>
+                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => navigate(`/profile/addresses/edit/${addr._id}`)}>
                     Edit
                   </button>
                   <button className="btn btn-sm btn-outline-danger me-2" onClick={() => handleDelete(addr._id)}>

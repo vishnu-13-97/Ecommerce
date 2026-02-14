@@ -59,6 +59,7 @@ const App = () => {
         <Route path="/profile/edit-profile" element={<EditProfile/>}/>
           <Route path="/profile/addresses" element={<AddressesList />} />
           <Route path="/profile/addresses/add" element={<AddAddress/>}/>
+       <Route path="/profile/addresses/edit/:id" element={<AddAddress />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="*" element={<NotFound />} />

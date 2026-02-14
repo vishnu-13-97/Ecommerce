@@ -1,18 +1,17 @@
 const express = require('express');
-const { isUser, isAdmin } = require('../../middleware/isAdmin');
-const { addAddress, updateAddress, removeAddress, getAddress } = require('../../controller/user/addressController');
+const { isUser } = require('../../middleware/isAdmin');
+const {
+  addAddress,
+  updateAddress,
+  removeAddress,
+  getAddress,
+  getAddressById
+} = require('../../controller/user/addressController');
 const auth = require('../../middleware/jwt');
 const validate = require('../../middleware/validate');
 const { addressSchema } = require('../../validators/addressValidator');
 
 const router = express.Router();
-
-/**
- * @swagger
- * tags:
- *   name: Address
- *   description: User address management
- */
 
 /**
  * @swagger
@@ -29,136 +28,91 @@ const router = express.Router();
  *     tags: [Address]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               fullName:
- *                 type: string
- *               mobile:
- *                 type: string
- *               pincode:
- *                 type: string
- *               addressLine:
- *                 type: string
- *               landmark:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               isDefault:
- *                 type: boolean
- *             required:
- *               - fullName
- *               - mobile
- *               - pincode
- *               - addressLine
- *               - city
- *               - state
  *     responses:
  *       201:
  *         description: Address added successfully
- *       400:
- *         description: Invalid address data
  */
-
 router.post('/', auth, isUser, validate(addressSchema), addAddress);
+
+
 /**
  * @swagger
- * /address:
+ * /address/{id}:
  *   put:
  *     summary: Update an existing address
  *     tags: [Address]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addressId:
- *                 type: string
- *               fullName:
- *                 type: string
- *               mobile:
- *                 type: string
- *               pincode:
- *                 type: string
- *               addressLine:
- *                 type: string
- *               landmark:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               isDefault:
- *                 type: boolean
- *             required:
- *               - addressId
- *               - fullName
- *               - mobile
- *               - pincode
- *               - addressLine
- *               - city
- *               - state
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Address ID
  *     responses:
  *       200:
  *         description: Address updated successfully
- *       400:
- *         description: Invalid request data
  */
+router.put('/:id', auth, isUser, validate(addressSchema), updateAddress);
 
-router.put('/', auth, isUser, validate(addressSchema), updateAddress);
 
 /**
  * @swagger
- * /address:
+ * /address/{id}:
  *   delete:
  *     summary: Delete an address
  *     tags: [Address]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addressId:
- *                 type: string
- *             required:
- *               - addressId
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Address ID
  *     responses:
  *       200:
  *         description: Address deleted successfully
- *       400:
- *         description: Invalid address ID
  */
+router.delete('/:id', auth, isUser, removeAddress);
 
-router.delete('/', auth, isUser, validate(addressSchema), removeAddress);
+
 /**
  * @swagger
  * /address:
  *   get:
- *     summary: Get all addresses of the logged-in user
+ *     summary: Get all addresses of logged-in user
  *     tags: [Address]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of addresses
- *       401:
- *         description: Unauthorized
  */
-
 router.get('/', auth, isUser, getAddress);
+
+
+/**
+ * @swagger
+ * /address/{id}:
+ *   get:
+ *     summary: Get a single address by ID
+ *     tags: [Address]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Address ID
+ *     responses:
+ *       200:
+ *         description: Address fetched successfully
+ */
+router.get('/:id', auth, isUser, getAddressById);
 
 module.exports = router;

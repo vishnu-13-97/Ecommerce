@@ -51,17 +51,16 @@ const verifyOtpHandler = async (otp) => {
 const login = async (data) => {
   try {
     const res = await loginUser(data);
-
     setUser(res.user);
 
-    const guestCart = localStorage.getItem("guest_cart");
+    const guestCart = localStorage.getItem("cart");
 
     if (guestCart) {
-      await API.post("user/cart/merge", {
-        userId: res.user._id,
-        cartItems: JSON.parse(guestCart),
+      await API.post("/user/cart/merge", {
+        items: JSON.parse(guestCart),  
       });
-      localStorage.removeItem("guest_cart");
+
+      localStorage.removeItem("cart");
     }
 
     return res;
@@ -69,6 +68,7 @@ const login = async (data) => {
     throw err;
   }
 };
+
 
   // Logout
   const logout = async () => {

@@ -40,7 +40,7 @@ const router = express.Router();
  */
 router.post('/', auth, isUser, addToCart);
 
-router.post('/merge',auth,isUser,mergeCart)
+
 
 /**
  * @swagger

@@ -24,6 +24,7 @@ const addressRoutes = require("./routes/userRoutes/addressRoutes");
 const orderRoutes = require('./routes/userRoutes/orderRoutes');
 const adminOrderRoutes = require("./routes/adminRoutes/orderRoutes");
 const userReviewRoutes = require('./routes/userRoutes/reviewRoutes');
+const { log } = require('winston');
 
 // Middleware
 app.use(express.json());
@@ -71,5 +72,11 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+
+
+
+
+
 
 startServer();

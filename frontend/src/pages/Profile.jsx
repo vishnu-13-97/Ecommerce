@@ -84,10 +84,7 @@ const Profile = () => {
                 <hr className="my-4" />
 
                 <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label text-dark fw-bold">Phone</label>
-                    <p className="form-control bg-white border-0">{user.phone}</p>
-                  </div>
+               
 
                   {/* Addresses */}
                   <div className="col-12 mt-4">

@@ -39,6 +39,7 @@ const addAddress = async (req, res) => {
       isDefault: isDefault ? true : false,
     });
 
+
     // Link address to user
     await User.findByIdAndUpdate(
       userId,
@@ -142,10 +143,44 @@ const removeAddress = async (req, res) => {
   }
 };
 
+const getAddressById = async (req, res) => {
+  logger.info("getAddressById route hit...");
+
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const address = await Address.findOne({
+      _id: id,
+      user: userId, // 🔥 ensures user can only access their own address
+    });
+
+    if (!address) {
+      return res.status(404).json({
+        success: false,
+        message: "Address not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      address,
+    });
+
+  } catch (error) {
+    logger.error("Error in getAddressById:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 
 module.exports = {
     addAddress,
     updateAddress,
     removeAddress,
-    getAddress
+    getAddress,
+    getAddressById
 }

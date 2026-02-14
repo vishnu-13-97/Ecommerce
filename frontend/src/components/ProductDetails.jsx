@@ -4,81 +4,62 @@ import API from "../api-helper/Axioxinstance";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-
 const ProductDetails = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 Fetch Product
   useEffect(() => {
-    API.get(`/product/${id}`)
-      .then((res) => res.data?.data && setProduct(res.data.data))
-      .catch((err) => console.error("Error fetching product:", err));
+    const fetchProduct = async () => {
+      try {
+        const res = await API.get(`/product/${id}`);
+        if (res.data?.data) {
+          setProduct(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        toast.error("Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
-  if (!product) return <p className="text-center py-5">Loading...</p>;
-
+  // 🔹 Add To Cart
   const handleAddToCart = async () => {
-  if (product.stock <= 0) {
-    toast.error("Out of stock");
-    return;
-  }
-
-  if (!user) {
-    try {
-      const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-console.log(localCart);
-
-      const existingIdx = localCart.findIndex(
-        (item) => item.product === product._id
-      );
-     
-
-
-      if (existingIdx >= 0) {
-        if (localCart[existingIdx].quantity < product.stock) {
-          localCart[existingIdx].quantity += 1;
-        } else {
-          toast.error("Maximum stock reached");
-          return;
-        }
-      } else {
-        localCart.push({
-         product: product._id,
-  name: product.name,
-  price: product.price,
-  image: product.images[0]?.url,
-  quantity: 1
-        });
-      }
-
-      localStorage.setItem("cart", JSON.stringify(localCart));
-      window.dispatchEvent(new Event("cartUpdated")); // for navbar badge
-      toast.success("Added to cart (guest)");
-    } catch (err) {
-      console.error("Local cart error", err);
-      toast.error("Could not add to cart");
+    if (product.stock <= 0) {
+      toast.error("Out of stock");
+      return;
     }
-    return;
-  }
 
-  try {
-   await API.post(
-      "/user/cart/",
-      { productId: product._id, quantity: 1 },
-      { withCredentials: true }
-    );
-    toast.success("Added to cart");
-    window.dispatchEvent(new Event("cartUpdated")); // for navbar badge
-  } catch (error) {
-    console.error(error);
-    toast.error("Unable to add to cart");
-  }
-};
+    // 🚀 Require Login
+    if (!user) {
+      navigate(`/login?redirect=/product/${product._id}`);
+      return;
+    }
 
+    try {
+      await API.post(
+        "/user/cart",
+        { productId: product._id, quantity: 1 },
+        { withCredentials: true }
+      );
 
+      toast.success("Added to cart");
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to add to cart");
+    }
+  };
 
+  // 🔹 Buy Now
   const handleBuyNow = () => {
     if (!user) {
       navigate(`/login?redirect=/payment/${product._id}`);
@@ -87,14 +68,28 @@ console.log(localCart);
     }
   };
 
+  if (loading) {
+    return <p className="text-center py-5">Loading...</p>;
+  }
+
+  if (!product) {
+    return (
+      <p className="text-center py-5 text-danger">
+        Product not found
+      </p>
+    );
+  }
+
   return (
     <div className="container py-5 position-relative">
+      {/* Back Button */}
       <button
         onClick={() => navigate("/")}
         className="btn btn-outline-success rounded-pill px-4 py-2 position-absolute"
         style={{ top: "20px", left: "20px", zIndex: 10, fontWeight: "500" }}
       >
-        <i className="fa fa-arrow-left me-2"></i> Back to Home
+        <i className="fa fa-arrow-left me-2"></i>
+        Back to Home
       </button>
 
       <div
@@ -106,10 +101,12 @@ console.log(localCart);
           boxShadow: "0 0 15px rgba(0,0,0,0.1)",
         }}
       >
+        {/* Product Image */}
         <div className="col-md-5 text-center mb-4 mb-md-0">
           <img
             src={
-              product.images?.[0]?.url || "https://via.placeholder.com/400"
+              product.images?.[0]?.url ||
+              "https://via.placeholder.com/400"
             }
             alt={product.name}
             className="img-fluid rounded"
@@ -122,19 +119,48 @@ console.log(localCart);
           />
         </div>
 
+        {/* Product Details */}
         <div className="col-md-6">
-          <h2 className="fw-bold mb-3 text-capitalize">{product.name}</h2>
-          <p className="text-muted mb-3">{product.description}</p>
-          <h4 className="text-success fw-semibold mb-3">₹{product.price}</h4>
+          <h2 className="fw-bold mb-3 text-capitalize">
+            {product.name}
+          </h2>
 
-          <p><strong>Category:</strong> {product.category?.name || "N/A"}</p>
-          <p className="mb-4"><strong>Brand:</strong> {product.brand?.name || "N/A"}</p>
+          <p className="text-muted mb-3">
+            {product.description}
+          </p>
 
+          <h4 className="text-success fw-semibold mb-3">
+            ₹{product.price}
+          </h4>
+
+          <p>
+            <strong>Category:</strong>{" "}
+            {product.category?.name || "N/A"}
+          </p>
+
+          <p className="mb-4">
+            <strong>Brand:</strong>{" "}
+            {product.brand?.name || "N/A"}
+          </p>
+
+          <p className="mb-3">
+            <strong>Stock:</strong>{" "}
+            {product.stock > 0 ? (
+              <span className="text-success">
+                {product.stock} Available
+              </span>
+            ) : (
+              <span className="text-danger">Out of Stock</span>
+            )}
+          </p>
+
+          {/* Buttons */}
           <div className="d-flex gap-3 flex-wrap">
             <button
               className="btn btn-success rounded-pill px-4 py-2"
               onClick={handleAddToCart}
               style={{ fontWeight: "500" }}
+              disabled={product.stock <= 0}
             >
               <i className="fa fa-shopping-bag me-2"></i>
               Add to Cart
@@ -144,6 +170,7 @@ console.log(localCart);
               className="btn btn-outline-success rounded-pill px-4 py-2"
               style={{ fontWeight: "500" }}
               onClick={handleBuyNow}
+              disabled={product.stock <= 0}
             >
               <i className="fa fa-bolt me-2"></i>
               Buy Now
