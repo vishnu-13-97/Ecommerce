@@ -1,159 +1,339 @@
-import React from 'react';
-
+import React, { useEffect, useState } from "react";
+import API from "../api-helper/Axioxinstance";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Checkout = () => {
+  const navigate = useNavigate();
+
+  const [cart, setCart] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [placingOrder, setPlacingOrder] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);
+
+  const [newAddress, setNewAddress] = useState({
+    fullName: "",
+    mobile: "",
+    pincode: "",
+    addressLine: "",
+    landmark: "",
+    city: "",
+    state: "",
+  });
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [cartRes, addressRes] = await Promise.all([
+        API.get("/user/cart", { withCredentials: true }),
+        API.get("/user/address", { withCredentials: true }),
+      ]);
+
+      setCart(cartRes.data.data);
+      setAddresses(addressRes.data.addresses || []);
+
+      if (addressRes.data.addresses?.length > 0) {
+        setSelectedAddress(addressRes.data.addresses[0]._id);
+      }
+    } catch (error) {
+      toast.error("Failed to load checkout data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddAddress = async () => {
+    const { fullName, mobile, pincode, addressLine, city, state } =
+      newAddress;
+
+    if (
+      !fullName ||
+      !mobile ||
+      !pincode ||
+      !addressLine ||
+      !city ||
+      !state
+    ) {
+      return toast.error("Please fill all required fields");
+    }
+
+    try {
+      const res = await API.post(
+        "/user/address",
+        {
+          ...newAddress,
+          country: "India",
+        },
+        { withCredentials: true }
+      );
+
+      const addedAddress = res.data.address;
+
+      setAddresses((prev) => [...prev, addedAddress]);
+      setSelectedAddress(addedAddress._id);
+
+      toast.success("Address added successfully");
+
+      setShowModal(false);
+
+      setNewAddress({
+        fullName: "",
+        mobile: "",
+        pincode: "",
+        addressLine: "",
+        landmark: "",
+        city: "",
+        state: "",
+      });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to add address"
+      );
+    }
+  };
+
+  const placeOrder = async () => {
+    if (!selectedAddress) {
+      return toast.error("Please select a shipping address");
+    }
+
+    if (!paymentMethod) {
+      return toast.error("Please select a payment method");
+    }
+
+    try {
+      setPlacingOrder(true);
+
+      await API.post(
+        "/user/orders",
+        {
+          addressId: selectedAddress,
+          paymentMethod,
+        },
+        { withCredentials: true }
+      );
+
+      toast.success("Order placed successfully");
+      navigate("/my-orders");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Error placing order"
+      );
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center py-5">Loading...</p>;
+  }
+
+  if (!cart || cart.items.length === 0) {
+    return (
+      <div className="text-center py-5">
+        <h3>Your cart is empty</h3>
+        <button
+          className="btn btn-success mt-3"
+          onClick={() => navigate("/shop")}
+        >
+          Go Shopping
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
-     
+      <div className="container py-5">
+        <h2 className="mb-4 fw-bold">Checkout</h2>
 
-      {/* Page Header */}
-      <div className="container-fluid page-header py-5">
-        <h1 className="text-center text-white display-6">Checkout</h1>
-        <ol className="breadcrumb justify-content-center mb-0">
-          <li className="breadcrumb-item"><a href="#">Home</a></li>
-          <li className="breadcrumb-item"><a href="#">Pages</a></li>
-          <li className="breadcrumb-item active text-white">Checkout</li>
-        </ol>
-      </div>
+        <div className="row">
+          {/* LEFT SIDE */}
+          <div className="col-lg-8">
 
-      {/* Checkout Page */}
-      <div className="container-fluid py-5">
-        <div className="container py-5">
-          <h1 className="mb-4">Billing details</h1>
-          <form>
-            <div className="row g-5">
-              {/* Left Side: Billing Form */}
-              <div className="col-md-12 col-lg-6 col-xl-7">
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="form-item w-100">
-                      <label className="form-label my-3">First Name<sup>*</sup></label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-item w-100">
-                      <label className="form-label my-3">Last Name<sup>*</sup></label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Company Name<sup>*</sup></label>
-                  <input type="text" className="form-control" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Address<sup>*</sup></label>
-                  <input type="text" className="form-control" placeholder="House Number Street Name" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Town/City<sup>*</sup></label>
-                  <input type="text" className="form-control" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Country<sup>*</sup></label>
-                  <input type="text" className="form-control" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Postcode/Zip<sup>*</sup></label>
-                  <input type="text" className="form-control" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Mobile<sup>*</sup></label>
-                  <input type="tel" className="form-control" />
-                </div>
-
-                <div className="form-item">
-                  <label className="form-label my-3">Email Address<sup>*</sup></label>
-                  <input type="email" className="form-control" />
-                </div>
-
-                <div className="form-check my-3">
-                  <input type="checkbox" className="form-check-input" id="Account-1" />
-                  <label className="form-check-label" htmlFor="Account-1">Create an account?</label>
-                </div>
-
-                <hr />
-
-                <div className="form-check my-3">
-                  <input className="form-check-input" type="checkbox" id="Address-1" />
-                  <label className="form-check-label" htmlFor="Address-1">Ship to a different address?</label>
-                </div>
-
-                <div className="form-item">
-                  <textarea className="form-control" rows="6" placeholder="Order Notes (Optional)"></textarea>
-                </div>
+            {/* Address Section */}
+            <div className="card shadow-sm border-0 rounded-4 p-4 mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="fw-bold mb-0">Shipping Address</h5>
+                <button
+                  className="btn btn-outline-success btn-sm"
+                  onClick={() => setShowModal(true)}
+                >
+                  + Add New
+                </button>
               </div>
 
-              {/* Right Side: Order Summary */}
-              <div className="col-md-12 col-lg-6 col-xl-5">
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Products</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><img src="img/vegetable-item-2.jpg" alt="" className="img-fluid rounded-circle" style={{ width: '90px', height: '90px' }} /></td>
-                        <td className="py-5">Awesome Broccoli</td>
-                        <td className="py-5">$69.00</td>
-                        <td className="py-5">2</td>
-                        <td className="py-5">$138.00</td>
-                      </tr>
-                      <tr>
-                        <td><img src="img/vegetable-item-5.jpg" alt="" className="img-fluid rounded-circle" style={{ width: '90px', height: '90px' }} /></td>
-                        <td className="py-5">Potatoes</td>
-                        <td className="py-5">$69.00</td>
-                        <td className="py-5">2</td>
-                        <td className="py-5">$138.00</td>
-                      </tr>
-                      <tr>
-                        <td><img src="img/vegetable-item-3.png" alt="" className="img-fluid rounded-circle" style={{ width: '90px', height: '90px' }} /></td>
-                        <td className="py-5">Big Banana</td>
-                        <td className="py-5">$69.00</td>
-                        <td className="py-5">2</td>
-                        <td className="py-5">$138.00</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
-                  <div className="col-12">
-                    <div className="form-check text-start my-3">
-                      <input type="checkbox" className="form-check-input bg-primary border-0" id="Transfer-1" />
-                      <label className="form-check-label" htmlFor="Transfer-1">Direct Bank Transfer</label>
-                    </div>
-                    <p className="text-start text-dark">
-                      Make your payment directly into our bank account. Please use your Order ID as the payment reference.
-                    </p>
+              {addresses.length === 0 ? (
+                <p className="text-muted">No address found. Add one.</p>
+              ) : (
+                addresses.map((addr) => (
+                  <div
+                    key={addr._id}
+                    className="form-check mb-3 border rounded p-3"
+                    style={{
+                      background:
+                        selectedAddress === addr._id
+                          ? "#f8fff8"
+                          : "white",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="address"
+                      checked={selectedAddress === addr._id}
+                      onChange={() =>
+                        setSelectedAddress(addr._id)
+                      }
+                    />
+                    <label className="form-check-label ms-2 w-100">
+                      <strong>{addr.fullName}</strong> <br />
+                      {addr.addressLine},{addr.landmark}, {addr.city},{" "}
+                      {addr.state} - {addr.pincode} <br />
+                      {addr.mobile}
+                    </label>
                   </div>
-                </div>
+                ))
+              )}
+            </div>
 
-                <div className="row g-4 text-center align-items-center justify-content-center pt-4">
-                  <button type="button" className="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">
-                    Place Order
-                  </button>
-                </div>
+            {/* Payment Section */}
+            <div className="card shadow-sm border-0 rounded-4 p-4">
+              <h5 className="mb-3 fw-bold">Payment Method</h5>
+
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  value="COD"
+                  checked={paymentMethod === "COD"}
+                  onChange={(e) =>
+                    setPaymentMethod(e.target.value)
+                  }
+                />
+                <label className="form-check-label ms-2">
+                  Cash on Delivery
+                </label>
+              </div>
+
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  value="Online"
+                  checked={paymentMethod === "Online"}
+                  onChange={(e) =>
+                    setPaymentMethod(e.target.value)
+                  }
+                />
+                <label className="form-check-label ms-2">
+                  Online Payment
+                </label>
               </div>
             </div>
-          </form>
+          </div>
+
+          {/* RIGHT SIDE */}
+          <div className="col-lg-4">
+            <div className="card shadow border-0 rounded-4 p-4">
+              <h5 className="mb-4 fw-bold">Order Summary</h5>
+
+              {cart.items.map((item) => (
+                <div
+                  key={item._id}
+                  className="d-flex justify-content-between mb-2"
+                >
+                  <span>
+                    {item.product.name} × {item.quantity}
+                  </span>
+                  <span>
+                    ₹{item.price * item.quantity}
+                  </span>
+                </div>
+              ))}
+
+              <hr />
+
+              <div className="d-flex justify-content-between mb-3">
+                <strong>Total</strong>
+                <strong className="text-success">
+                  ₹{cart.totalPrice}
+                </strong>
+              </div>
+
+              <button
+                className="btn btn-success w-100 rounded-pill py-2 fw-bold"
+                onClick={placeOrder}
+                disabled={placingOrder}
+              >
+                {placingOrder
+                  ? "Placing Order..."
+                  : "Place Order"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
- 
+      {/* Add Address Modal */}
+      {showModal && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="bg-white p-4 rounded-4 shadow"
+            style={{ width: "400px" }}
+          >
+            <h5 className="mb-3">Add New Address</h5>
+
+            {Object.keys(newAddress).map((key) => (
+              <div className="mb-2" key={key}>
+                <input
+                  className="form-control"
+                  placeholder={
+                    key === "addressLine"
+                      ? "Address Line"
+                      : key.charAt(0).toUpperCase() +
+                        key.slice(1)
+                  }
+                  value={newAddress[key]}
+                  onChange={(e) =>
+                    setNewAddress({
+                      ...newAddress,
+                      [key]: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            ))}
+
+            <div className="d-flex justify-content-end mt-3">
+              <button
+                className="btn btn-secondary me-2"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={handleAddAddress}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

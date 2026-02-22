@@ -1,11 +1,14 @@
 import { Link ,useNavigate} from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-
+import { useCart } from "../context/CartContext";
 export default function Navbar() {
+
   const { user, logout } = useAuth();
   const [openUserMenu, setOpenUserMenu] = useState(false);
+  const { cartCount } = useCart();
   const dropdownRef = useRef(null);
+
 
   const toggleUserMenu = () => setOpenUserMenu((prev) => !prev);
 const navigate = useNavigate();
@@ -100,12 +103,20 @@ const handleLogout = async () => {
               {/* Cart */}
               <Link to="/cart" className="position-relative me-4">
                 <i className="fa fa-shopping-bag fa-2x text-primary"></i>
-                <span
-                  className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
-                  style={{ top: "-5px", left: "15px", height: "20px", minWidth: "20px", fontSize: "12px" }}
-                >
-                  3
-                </span>
+  {cartCount > 0 && (
+  <span
+    className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
+    style={{
+      top: "-5px",
+      left: "15px",
+      height: "20px",
+      minWidth: "20px",
+      fontSize: "12px"
+    }}
+  >
+    {cartCount}
+  </span>
+)}
               </Link>
 
               {/* User Dropdown */}

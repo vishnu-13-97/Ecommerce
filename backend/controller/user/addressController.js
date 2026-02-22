@@ -3,7 +3,7 @@ const Address = require("../../models/address");
 const User = require('../../models/user')
 
 const addAddress = async (req, res) => {
-  logger.info("addAddress Route Hit ...");
+  logger.info("addAddress Route Hit ...45");
   try {
     const userId = req.user.id;
 
@@ -89,54 +89,66 @@ const updateAddress = async (req, res) => {
   logger.info("updateAddress Route Hit...");
   try {
     const userId = req.user.id;
+    const { id } = req.params;
     const updateFields = req.body;
 
+    // If setting default true → clear previous default first
+    if (updateFields.isDefault) {
+      await Address.updateMany(
+        { user: userId },
+        { $set: { isDefault: false } }
+      );
+    }
+
     const address = await Address.findOneAndUpdate(
-      { user: userId },
+      { _id: id, user: userId },
       { $set: updateFields },
       { new: true }
     );
 
     if (!address) {
-      logger.warn("Address not found for update");
       return res.status(404).json({
         success: false,
-        message: "Address not found for this user",
+        message: "Address not found",
       });
     }
 
-    logger.info("Address updated successfully");
     res.status(200).json({
       success: true,
       message: "Address updated successfully",
       address,
     });
+
   } catch (error) {
     logger.error("Update Address Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+
 const removeAddress = async (req, res) => {
   logger.info("removeAddress Route Hit...");
   try {
     const userId = req.user.id;
+    const { id } = req.params;
 
-    const address = await Address.findOneAndDelete({ user: userId });
+    const address = await Address.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
 
     if (!address) {
-      logger.warn("No address found to delete");
       return res.status(404).json({
         success: false,
-        message: "No address found for this user",
+        message: "Address not found",
       });
     }
 
-    logger.info("Address removed successfully");
     res.status(200).json({
       success: true,
       message: "Address removed successfully",
     });
+
   } catch (error) {
     logger.error("Remove Address Error:", error);
     res.status(500).json({ message: "Internal server error" });

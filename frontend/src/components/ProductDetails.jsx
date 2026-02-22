@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../api-helper/Axioxinstance";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { useCart } from "../context/CartContext";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { fetchCartCount } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const ProductDetails = () => {
         { productId: product._id, quantity: 1 },
         { withCredentials: true }
       );
-
+      fetchCartCount();
       toast.success("Added to cart");
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (error) {

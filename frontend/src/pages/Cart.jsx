@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api-helper/Axioxinstance";
 import { toast } from "react-toastify";
+import { useCart } from "../context/CartContext";
 
 const Cart = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
-
+ const { fetchCartCount } = useCart();
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchCart();
@@ -39,6 +40,7 @@ const Cart = () => {
       );
 
       fetchCart();
+      fetchCartCount();
     } catch (error) {
       toast.error(error.response?.data?.message || "Error updating cart");
     } finally {
@@ -55,8 +57,9 @@ const Cart = () => {
         data: { productId, quantity: 1 },
         withCredentials: true,
       });
-
+        
       fetchCart();
+      fetchCartCount();
     } catch (error) {
       toast.error(error.response?.data?.message || "Error updating cart");
     } finally {
@@ -76,6 +79,7 @@ const Cart = () => {
 
       toast.success("Item removed");
       fetchCart();
+      fetchCartCount();
     } catch (error) {
       toast.error("Error removing item");
     } finally {

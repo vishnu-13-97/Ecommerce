@@ -45,6 +45,9 @@ export default function AddressesList() {
       toast.success("Set as default");
       fetchAddresses();
     } catch (err) {
+       console.log("ERROR STATUS:", err.response?.status);
+    console.log("ERROR DATA:", err.response?.data);
+    toast.error(err.response?.data?.message || "Failed to set default");
       console.error(err);
       toast.error("Failed to set default");
     }
