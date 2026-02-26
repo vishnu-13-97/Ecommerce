@@ -42,6 +42,9 @@ import Users from "./pages/admin/Users";
 import BrandForm from "./pages/admin/AdminBranForm";
 import CategoryForm from "./pages/admin/AdminCategoryForm";
 import ProductForm from "./pages/admin/AdminProductForm";
+import OrderSuccess from "./pages/OrderSuccess";
+import MyOrders from "./pages/MyOrders";
+import SingleOrder from "./pages/SingleOrderDetails";
 
 const App = () => {
   const location = useLocation();
@@ -75,6 +78,9 @@ const App = () => {
           <Route path="/profile/addresses/edit/:id" element={<AddAddress />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+           <Route path="/my-orders" element={<MyOrders />} />
+              <Route path="/my-orders/:id" element={<SingleOrder />} />
         </Route>
 
         {/* ================= ADMIN PROTECTED ROUTES ================= */}

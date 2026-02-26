@@ -148,7 +148,7 @@ const handleLogout = async () => {
         {user.role === "user" && (
           <>
             <Link className="dropdown-item" to="/profile">Profile</Link>
-            <Link className="dropdown-item" to="/orders">My Orders</Link>
+            <Link className="dropdown-item" to="/my-orders">My Orders</Link>
           </>
         )}
 

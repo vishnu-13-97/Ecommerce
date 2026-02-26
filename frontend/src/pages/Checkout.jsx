@@ -99,37 +99,85 @@ const Checkout = () => {
     }
   };
 
-  const placeOrder = async () => {
-    if (!selectedAddress) {
-      return toast.error("Please select a shipping address");
-    }
+ const placeOrder = async () => {
+  if (!selectedAddress) {
+    return toast.error("Please select a shipping address");
+  }
 
-    if (!paymentMethod) {
-      return toast.error("Please select a payment method");
-    }
+  if (!paymentMethod) {
+    return toast.error("Please select a payment method");
+  }
 
-    try {
-      setPlacingOrder(true);
+  try {
+    setPlacingOrder(true);
 
-      await API.post(
+    // 🟢 COD FLOW
+    if (paymentMethod === "COD") {
+      const res = await API.post(
         "/user/orders",
         {
           addressId: selectedAddress,
-          paymentMethod,
+          paymentMethod: "COD",
         },
         { withCredentials: true }
       );
 
       toast.success("Order placed successfully");
-      navigate("/my-orders");
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Error placing order"
-      );
-    } finally {
-      setPlacingOrder(false);
+      const orderId = res.data.order._id;
+      navigate(`/order-success/${orderId}`);
+      return;
     }
-  };
+
+    // 🔵 RAZORPAY FLOW
+    if (paymentMethod === "Razorpay") {
+      const res = await API.post(
+        "/user/orders",
+        {
+          addressId: selectedAddress,
+          paymentMethod: "Razorpay",
+        },
+        { withCredentials: true }
+      );
+
+      const { razorpayOrderId, amount } = res.data;
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: amount,
+        currency: "INR",
+        order_id: razorpayOrderId,
+        handler: async function (response) {
+          try {
+            const verifyRes = await API.post(
+              "/user/orders/verify",
+              {
+                ...response,
+                addressId: selectedAddress,
+              },
+              { withCredentials: true }
+            );
+
+            toast.success("Payment Successful");
+            navigate(`/order-success/${verifyRes.data.order._id}`);
+          } catch (err) {
+            toast.error("Payment verification failed");
+          }
+        },
+        theme: {
+          color: "#198754",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    }
+
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Error placing order");
+  } finally {
+    setPlacingOrder(false);
+  }
+};
 
   if (loading) {
     return <p className="text-center py-5">Loading...</p>;
@@ -230,8 +278,8 @@ const Checkout = () => {
                   className="form-check-input"
                   type="radio"
                   name="paymentMethod"
-                  value="Online"
-                  checked={paymentMethod === "Online"}
+                  value="Razorpay"
+                  checked={paymentMethod === "Razorpay"}
                   onChange={(e) =>
                     setPaymentMethod(e.target.value)
                   }

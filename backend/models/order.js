@@ -7,6 +7,7 @@ const OrderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     items: [
       {
         product: {
@@ -25,31 +26,42 @@ const OrderSchema = new mongoose.Schema(
         },
       },
     ],
- shippingAddress: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Address",
-  required: true,
-},
-  paymentMethod: {
-      type: String,
-      enum: ["COD", "Credit Card", "UPI", "Net Banking"],
-      required: false,
+
+    shippingAddress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: true,
     },
+
+    paymentMethod: {
+      type: String,
+      enum: ["COD", "Razorpay"],
+      required: true,
+    },
+
     paymentStatus: {
       type: String,
       enum: ["Pending", "Paid", "Failed"],
       default: "Pending",
     },
+
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
+
     orderStatus: {
       type: String,
       enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
       default: "Processing",
     },
+
     totalPrice: {
       type: Number,
       required: true,
     },
+
     deliveredAt: Date,
+
     isCancelled: {
       type: Boolean,
       default: false,
@@ -58,5 +70,4 @@ const OrderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Order = mongoose.model("Order", OrderSchema);
-module.exports = Order;
+module.exports = mongoose.model("Order", OrderSchema);
