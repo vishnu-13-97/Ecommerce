@@ -183,7 +183,7 @@ const login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       logger.warn(`Login failed - User not found: ${email}`);
-      return res.status(400).json({ message: "User not registered" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // 3️⃣ Check if blocked
@@ -196,10 +196,10 @@ const login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       logger.warn(`Incorrect password for user: ${email}`);
-      return res.status(400).json({ message: "Incorrect password" });
+    return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 5️⃣ Clear existing cookiea
+    // 5️⃣ Clear existing cookie
     const cookieName = process.env.COOKIE_NAME || "token";
     res.clearCookie(cookieName, {
       httpOnly: true,
@@ -373,6 +373,8 @@ const logOut = (req, res) => {
   res.status(200).json({ message: 'Logout successful' });
 };
 
+
+
 module.exports = {
   register,
   verifyOtp,
@@ -382,4 +384,5 @@ module.exports = {
   userProfile,
   updateUserProfile,
   logOut,
+ 
 };

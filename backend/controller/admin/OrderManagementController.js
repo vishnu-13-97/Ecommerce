@@ -9,14 +9,16 @@ const getAllOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const status = req.query.status; // e.g., 'Delivered'
-    const sortBy = req.query.sort || 'desc'; // 'asc' or 'desc'
+    const status = req.query.status;
+    const sortBy = req.query.sort || "desc";
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    // 🔍 Build filter
+    // Build filter
     const filter = {};
+
     if (status) filter.orderStatus = status;
+
     if (startDate && endDate) {
       filter.createdAt = {
         $gte: new Date(startDate),
@@ -24,42 +26,35 @@ const getAllOrders = async (req, res) => {
       };
     }
 
-    // 🔄 Fetch orders
+    // Fetch orders
     const allOrders = await Order.find(filter)
-      .populate('user', 'name email') // ✅ Get user info
-      .sort({ createdAt: sortBy === 'asc' ? 1 : -1 })
+      .populate("user", "name email")
+      .sort({ createdAt: sortBy === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(limit);
 
     const totalOrders = await Order.countDocuments(filter);
 
-    if (allOrders.length === 0) {
-      logger.warn("No orders found");
-      return res.status(404).json({
-        success: false,
-        message: "No orders found",
-      });
-    }
+    logger.info("Orders fetched successfully");
 
-    logger.info("All orders fetched successfully");
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       page,
       totalPages: Math.ceil(totalOrders / limit),
       totalOrders,
       count: allOrders.length,
-      orders: allOrders,
+      orders: allOrders, // 🔥 IMPORTANT
     });
+
   } catch (error) {
     logger.error("Internal server error in getAllOrders", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
   }
 };
-
 
 const getOrderById = async(req,res)=>{
       logger.info("getAllOrders Route hit...");

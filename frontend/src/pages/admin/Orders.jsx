@@ -1,160 +1,229 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../../api-helper/Axioxinstance";
+
+const validStatuses = [
+  "Pending",
+  "Processing",
+  "Shipped",
+  "Out for Delivery",
+  "Delivered",
+  "Cancelled",
+];
+
+const getStatusBadge = (status) => {
+  const colors = {
+    Pending: "secondary",
+    Processing: "info",
+    Shipped: "primary",
+    "Out for Delivery": "warning",
+    Delivered: "success",
+    Cancelled: "danger",
+  };
+
+  return `badge bg-${colors[status] || "secondary"}`;
+};
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState("");
+const [updatingId, setUpdatingId] = useState(null);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  const loadOrders = async () => {
+  const fetchOrders = async () => {
     try {
-      const res = await API.get("/admin/orders");
+      setLoading(true);
+
+      const res = await API.get("/admin/orders", {
+        params: {
+          page,
+          status: statusFilter || undefined,
+        },
+      });
+
       if (res.data.success) {
-        setOrders(res.data.data);
+        setOrders(res.data.orders);
+        setTotalPages(res.data.totalPages);
       }
     } catch (err) {
-      console.error("Failed to fetch orders", err);
+      console.error("Error fetching orders");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Update order status
-  const updateOrderStatus = async (id, status) => {
-    try {
-      const res = await API.put(`/admin/order/status/${id}`, { status });
-      alert(res.data.message);
-      loadOrders();
-    } catch (err) {
-      console.error("Failed to update order", err);
-    }
-  };
+  useEffect(() => {
+    fetchOrders();
+  }, [page, statusFilter]);
 
-  // Delete Order
-  const deleteOrder = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this order?")) return;
+ const handleStatusChange = async (orderId, newStatus) => {
+  const previousOrders = [...orders];
 
-    try {
-      const res = await API.delete(`/admin/order/${id}`);
-      alert(res.data.message);
-      loadOrders();
-    } catch (err) {
-      console.error("Failed to delete order", err);
+  // Optimistic update
+  const updatedOrders = orders.map((order) =>
+    order._id === orderId
+      ? { ...order, orderStatus: newStatus }
+      : order
+  );
+
+  setOrders(updatedOrders);
+  setUpdatingId(orderId);
+  setError("");
+
+  try {
+    const res = await API.put(`/admin/orders/${orderId}`, {
+      status: newStatus,
+    });
+
+    if (!res.data.success) {
+      throw new Error(res.data.message);
     }
-  };
+  } catch (err) {
+    // Revert UI
+    setOrders(previousOrders);
+
+    setError(
+      err.response?.data?.message ||
+      "Failed to update order status"
+    );
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
+  if (loading)
+    return (
+      <div className="text-center mt-5">
+        <div className="spinner-border text-primary" />
+      </div>
+    );
 
   return (
-    <div className="container mt-4">
-      <h4 className="fw-bold mb-3">Orders</h4>
+    <div className="container-fluid">
+      <div className="card shadow-sm border-0">
+        <div className="card-body">
 
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover align-middle">
-          <thead className="table-dark">
-            <tr>
-              <th>#</th>
-              <th>User</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th>Delivered At</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+          {/* Header */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 className="mb-0 fw-bold">Order Management</h4>
 
-          <tbody>
-            {orders.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="text-center fw-bold">
-                  No orders found
-                </td>
-              </tr>
-            ) : (
-              orders.map((o, i) => (
-                <tr key={o._id}>
-                  <td>{i + 1}</td>
+            <select
+              className="form-select w-auto"
+              value={statusFilter}
+              onChange={(e) => {
+                setPage(1);
+                setStatusFilter(e.target.value);
+              }}
+            >
+              <option value="">All Orders</option>
+              {validStatuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+          </div>
 
-                  <td>
-                    <strong>{o.user?.name}</strong>
-                    <br />
-                    <small>{o.user?.email}</small>
-                  </td>
-
-                  <td>
-                    {o.items.map((item, index) => (
-                      <div key={index}>
-                        {item.product?.name} × {item.quantity}  
-                        <span className="text-muted">₹{item.price}</span>
-                      </div>
-                    ))}
-                  </td>
-
-                  <td className="fw-bold text-success">₹{o.totalPrice}</td>
-
-                  <td>
-                    <span className="badge bg-info">{o.paymentMethod}</span>
-                    <br />
-                    {o.paymentStatus === "Paid" ? (
-                      <span className="badge bg-success mt-1">Paid</span>
-                    ) : (
-                      <span className="badge bg-warning mt-1">Pending</span>
-                    )}
-                  </td>
-
-                  <td>
-                    <span
-                      className={`badge ${
-                        o.orderStatus === "Delivered"
-                          ? "bg-success"
-                          : o.orderStatus === "Shipped"
-                          ? "bg-primary"
-                          : o.orderStatus === "Cancelled"
-                          ? "bg-danger"
-                          : "bg-warning"
-                      }`}
-                    >
-                      {o.orderStatus}
-                    </span>
-                  </td>
-
-                  <td>{o.deliveredAt ? new Date(o.deliveredAt).toLocaleString() : "-"}</td>
-
-                  <td>
-                    {/* Status Update Buttons */}
-                    <button
-                      className="btn btn-sm btn-primary me-2 mb-1"
-                      onClick={() => updateOrderStatus(o._id, "Shipped")}
-                    >
-                      Mark Shipped
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-success me-2 mb-1"
-                      onClick={() => updateOrderStatus(o._id, "Delivered")}
-                    >
-                      Mark Delivered
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-danger me-2 mb-1"
-                      onClick={() => updateOrderStatus(o._id, "Cancelled")}
-                    >
-                      Cancel
-                    </button>
-
-                    {/* Delete */}
-                    <button
-                      className="btn btn-sm btn-dark"
-                      onClick={() => deleteOrder(o._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+          {/* Table */}
+          <div className="table-responsive">
+            <table className="table align-middle table-hover">
+              <thead className="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>User</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Update</th>
+                  <th>Date</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+
+              <tbody>
+                {orders.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-muted">
+                      No orders found
+                    </td>
+                  </tr>
+                ) : (
+                  orders.map((order, index) => (
+                    <tr key={order._id}>
+                      <td>{(page - 1) * 10 + index + 1}</td>
+
+                      <td>
+                        <div className="fw-semibold">
+                          {order.user?.name}
+                        </div>
+                        <small className="text-muted">
+                          {order.user?.email}
+                        </small>
+                      </td>
+
+                      <td className="fw-bold">₹{order.totalPrice}</td>
+
+                      <td>
+                        <span className={getStatusBadge(order.orderStatus)}>
+                          {order.orderStatus}
+                        </span>
+                      </td>
+
+                      <td>
+                      <select
+  className="form-select form-select-sm"
+  value={order.orderStatus}
+  onChange={(e) =>
+    handleStatusChange(order._id, e.target.value)
+  }
+  disabled={
+    updatingId === order._id ||
+    order.orderStatus === "Delivered" ||
+    order.orderStatus === "Cancelled"
+  }
+>
+                          {validStatuses.map((status) => (
+                            <option key={status}>{status}</option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td>
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {orders.length > 0 && (
+            <div className="d-flex justify-content-between align-items-center mt-4">
+              <div className="text-muted">
+                Page {page} of {totalPages}
+              </div>
+
+              <div>
+                <button
+                  className="btn btn-outline-secondary btn-sm me-2"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </button>
+
+                <button
+                  className="btn btn-primary btn-sm"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );

@@ -11,7 +11,10 @@ export default function Products() {
 
   // Fetch products from backend
   useEffect(() => {
+   
     fetchProducts();
+   
+    
   }, []);
 
   const fetchProducts = async () => {

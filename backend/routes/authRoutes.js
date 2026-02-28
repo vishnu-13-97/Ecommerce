@@ -66,6 +66,7 @@ router.post('/register', registerLimiter, validate(registerSchema), authControll
  */
 router.post('/verify-otp',authController.verifyOtp);
 
+
 /**
  * @swagger
  * /auth/forgot-password:
