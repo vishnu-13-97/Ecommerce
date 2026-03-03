@@ -1,31 +1,27 @@
-import { Link ,useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-export default function Navbar() {
 
+export default function Navbar() {
   const { user, logout } = useAuth();
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const { cartCount } = useCart();
   const dropdownRef = useRef(null);
-
+  const navigate = useNavigate();
 
   const toggleUserMenu = () => setOpenUserMenu((prev) => !prev);
-const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setOpenUserMenu(false);
+      navigate("/");
+    } catch (err) {
+      console.error("Logout failed:", err.message);
+    }
+  };
 
-
-const handleLogout = async () => {
-  try {
-    await logout();
-    setOpenUserMenu(false); // close dropdown
-    navigate("/"); // redirect to home
-  } catch (err) {
-    console.error("Logout failed:", err.message);
-  }
-};
-
-  // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -36,169 +32,226 @@ const handleLogout = async () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  return (
-    <div className="container-fluid fixed-top">
-      {/* Top Bar */}
-      <div className="container topbar bg-primary d-none d-lg-block py-1">
-        <div className="d-flex justify-content-between align-items-center">
-          <div className="top-info ps-2">
-            <small className="me-3">
-              <i className="fas fa-map-marker-alt me-2 text-secondary"></i>
-              <a href="#" className="text-white">123 Street, New York</a>
-            </small>
-            <small className="me-3">
-              <i className="fas fa-envelope me-2 text-secondary"></i>
-              <a href="#" className="text-white">Email@Example.com</a>
-            </small>
+  const UserDropdownMenu = () => (
+    <div
+      className="dropdown-menu show shadow border-0 rounded-3 mt-2"
+      style={{ right: 0, left: "auto", minWidth: "210px" }}
+    >
+      {user ? (
+        <>
+          <div className="px-3 py-2 border-bottom bg-light rounded-top-3">
+            <p className="mb-0 fw-semibold text-dark small">👋 {user.name}</p>
+            <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>{user.email}</p>
           </div>
-          <div className="top-link pe-2">
-            <a href="#" className="text-white">
-              <small className="mx-2">Privacy Policy</small>/
-            </a>
-            <a href="#" className="text-white">
-              <small className="mx-2">Terms of Use</small>/
-            </a>
-            <a href="#" className="text-white">
-              <small className="ms-2">Sales and Refunds</small>
-            </a>
+
+          {user.role === "user" && (
+            <>
+              <Link className="dropdown-item d-flex align-items-center gap-2 py-2" to="/profile" onClick={() => setOpenUserMenu(false)}>
+                <i className="fas fa-user-circle text-primary"></i> Profile
+              </Link>
+              <Link className="dropdown-item d-flex align-items-center gap-2 py-2" to="/my-orders" onClick={() => setOpenUserMenu(false)}>
+                <i className="fas fa-box text-primary"></i> My Orders
+              </Link>
+            </>
+          )}
+
+          {user.role === "admin" && (
+            <Link className="dropdown-item d-flex align-items-center gap-2 py-2 text-warning fw-medium" to="/admin" onClick={() => setOpenUserMenu(false)}>
+              <i className="fas fa-cog"></i> Admin Panel
+            </Link>
+          )}
+
+          <div className="dropdown-divider my-1"></div>
+          <button className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" onClick={handleLogout}>
+            <i className="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <Link className="dropdown-item d-flex align-items-center gap-2 py-2" to="/login" onClick={() => setOpenUserMenu(false)}>
+            <i className="fas fa-sign-in-alt text-primary"></i> Login
+          </Link>
+          <Link className="dropdown-item d-flex align-items-center gap-2 py-2" to="/signup" onClick={() => setOpenUserMenu(false)}>
+            <i className="fas fa-user-plus text-success"></i> Register
+          </Link>
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {/* Top Bar */}
+      <div className="bg-primary d-none d-lg-block">
+        <div className="container">
+          <div className="d-flex justify-content-between align-items-center py-1">
+            <div className="d-flex gap-3">
+              <small className="d-flex align-items-center gap-1">
+                <i className="fas fa-map-marker-alt text-warning"></i>
+                <a href="#" className="text-white text-decoration-none">123 Street, New York</a>
+              </small>
+              <small className="d-flex align-items-center gap-1">
+                <i className="fas fa-envelope text-warning"></i>
+                <a href="#" className="text-white text-decoration-none">Email@Example.com</a>
+              </small>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              {["Privacy Policy", "Terms of Use", "Sales & Refunds"].map((item, i, arr) => (
+                <span key={item} className="d-flex align-items-center gap-2">
+                  <a href="#" className="text-white text-decoration-none"><small>{item}</small></a>
+                  {i < arr.length - 1 && <span className="text-white-50">·</span>}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Navbar */}
-      <div className="container px-0">
-        <nav className="navbar navbar-light bg-white navbar-expand-xl py-2 shadow-sm">
-          <Link to="/" className="navbar-brand">
-            <h1 className="text-primary display-6 m-0">Ecomm</h1>
+      <nav className="navbar navbar-expand-xl navbar-light bg-white shadow-sm sticky-top">
+        <div className="container">
+
+          {/* Brand */}
+          <Link to="/" className="navbar-brand d-flex align-items-center gap-2 text-primary fw-bold fs-4">
+            <i className="fas fa-store"></i>
+            <span>Ecomm</span>
           </Link>
 
+          {/* Mobile right-side icons (visible before toggler) */}
+          <div className="d-flex d-xl-none align-items-center gap-3 ms-auto me-2">
+            <Link to="/cart" className="position-relative text-primary">
+              <i className="fa fa-shopping-bag fa-lg"></i>
+              {cartCount > 0 && (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style={{ fontSize: "10px" }}>
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            <div className="position-relative" ref={dropdownRef}>
+              <button className="btn btn-link p-0 text-primary border-0 shadow-none" onClick={toggleUserMenu}>
+                {user ? (
+                  <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "32px", height: "32px", fontSize: "13px" }}>
+                    {user.name?.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <i className="fas fa-user fa-lg"></i>
+                )}
+              </button>
+              {openUserMenu && (
+                <div style={{ position: "absolute", top: "42px", right: 0, zIndex: 1055 }}>
+                  <UserDropdownMenu />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Toggler */}
           <button
-            className="navbar-toggler py-2 px-3"
+            className="navbar-toggler border-0 shadow-none"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarCollapse"
           >
-            <span className="fa fa-bars text-primary"></span>
+            <span className="navbar-toggler-icon"></span>
           </button>
 
+          {/* Collapsible */}
           <div className="collapse navbar-collapse" id="navbarCollapse">
-            {/* Navigation Links */}
-            <div className="navbar-nav mx-auto">
-              <Link to="/" className="nav-item nav-link active">Home</Link>
-              <Link to="/shop" className="nav-item nav-link">Shop</Link>
-              <Link to="/contact" className="nav-item nav-link">Contact</Link>
-            </div>
 
-            {/* Right Side: Search, Cart, User */}
-            <div className="d-flex align-items-center">
-              {/* Search */}
+            {/* Nav Links */}
+            <ul className="navbar-nav mx-auto mb-2 mb-xl-0">
+              <li className="nav-item">
+                <Link to="/" className="nav-link px-3 rounded-pill fw-medium active">Home</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/shop" className="nav-link px-3 rounded-pill fw-medium">Shop</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/contact" className="nav-link px-3 rounded-pill fw-medium">Contact</Link>
+              </li>
+            </ul>
+
+            {/* Desktop: Search + Cart + User */}
+            <div className="d-none d-xl-flex align-items-center gap-3">
               <button
-                className="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4"
+                className="btn btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                style={{ width: "40px", height: "40px" }}
                 data-bs-toggle="modal"
                 data-bs-target="#searchModal"
               >
-                <i className="fas fa-search text-primary"></i>
+                <i className="fas fa-search"></i>
               </button>
 
-              {/* Cart */}
-              <Link to="/cart" className="position-relative me-4">
-                <i className="fa fa-shopping-bag fa-2x text-primary"></i>
-  {cartCount > 0 && (
-  <span
-    className="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
-    style={{
-      top: "-5px",
-      left: "15px",
-      height: "20px",
-      minWidth: "20px",
-      fontSize: "12px"
-    }}
-  >
-    {cartCount}
-  </span>
-)}
+              <Link to="/cart" className="position-relative text-primary">
+                <i className="fa fa-shopping-bag fa-2x"></i>
+                {cartCount > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style={{ fontSize: "11px" }}>
+                    {cartCount}
+                  </span>
+                )}
               </Link>
 
-              {/* User Dropdown */}
               <div className="dropdown" ref={dropdownRef}>
-                <i
-                  className="fas fa-user fa-2x text-primary"
-                  style={{ cursor: "pointer" }}
-                  onClick={toggleUserMenu}
-                ></i>
+                <button className="btn btn-link p-0 text-primary border-0 shadow-none d-flex align-items-center gap-2" onClick={toggleUserMenu}>
+                  {user ? (
+                    <>
+                      <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "36px", height: "36px", fontSize: "14px" }}>
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <i className={`fas fa-chevron-${openUserMenu ? "up" : "down"} small text-muted`}></i>
+                    </>
+                  ) : (
+                    <i className="fas fa-user fa-2x"></i>
+                  )}
+                </button>
 
-                {openUserMenu && (
-  <div
-    className="dropdown-menu show mt-3 shadow-sm"
-    style={{
-      right: 0,
-      left: "auto",
-      borderRadius: "8px",
-      minWidth: "180px",
-      padding: "0.5rem 0",
-    }}
-  >
-    {user ? (
-      <>
-        <span className="dropdown-item-text fw-bold ps-3">
-          👋 Hello, {user.name}
-        </span>
-
-        {/* USER ONLY */}
-        {user.role === "user" && (
-          <>
-            <Link className="dropdown-item" to="/profile">Profile</Link>
-            <Link className="dropdown-item" to="/my-orders">My Orders</Link>
-          </>
-        )}
-
-        {/* ADMIN ONLY */}
-        {user.role === "admin" && (
-          <Link className="dropdown-item text-warning" to="/admin">
-            Admin Panel
-          </Link>
-        )}
-
-        <button className="dropdown-item text-danger" onClick={handleLogout}>
-          Logout
-        </button>
-      </>
-    ) : (
-      <>
-        <Link className="dropdown-item" to="/login">Login</Link>
-        <Link className="dropdown-item" to="/signup">Register</Link>
-      </>
-    )}
-  </div>
-)}
-
+                {openUserMenu && <UserDropdownMenu />}
               </div>
             </div>
-          </div>
-        </nav>
-      </div>
 
-      {/* Inline CSS for dropdown animation */}
-      <style>
-        {`
-          .dropdown-menu {
-            transition: all 0.2s ease-in-out;
-            opacity: 0;
-            transform: translateY(-5px);
-          }
-          .dropdown-menu.show {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          .topbar a:hover {
-            text-decoration: underline;
-          }
-          .navbar-nav .nav-link.active {
-            font-weight: 600;
-            color: #0d6efd !important;
-          }
-        `}
-      </style>
-    </div>
+            {/* Mobile: Search button (in collapsed menu) */}
+            <div className="d-xl-none mt-2">
+              <button
+                className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                data-bs-toggle="modal"
+                data-bs-target="#searchModal"
+              >
+                <i className="fas fa-search"></i> Search
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <style>{`
+        .navbar .nav-link {
+          transition: background-color 0.2s, color 0.2s;
+          color: #333;
+        }
+        .navbar .nav-link:hover,
+        .navbar .nav-link.active {
+          background-color: rgba(13, 110, 253, 0.09);
+          color: #0d6efd !important;
+        }
+        .navbar .nav-link.active {
+          font-weight: 600;
+        }
+        .dropdown-item {
+          font-size: 0.9rem;
+          transition: background-color 0.15s;
+        }
+        .dropdown-item:hover {
+          background-color: #eef3ff;
+        }
+        .dropdown-menu {
+          animation: dropIn 0.15s ease-out;
+        }
+        @keyframes dropIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </>
   );
 }

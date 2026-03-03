@@ -317,9 +317,10 @@ res.status(200).json({
 const getSingleOrder = async (req, res) => {
   const orderId = req.params.id;
   const userId = req.user.id;
- console.log("Order ID:", orderId);
-  console.log("User ID:", userId);
-  const order = await Order.findOne({ _id: orderId, user: userId }).populate('items.product');
+
+  const order = await Order.findOne({ _id: orderId, user: userId })
+    .populate('items.product')
+    .populate('shippingAddress'); // ← populate address document
 
   if (!order) {
     return res.status(404).json({ success: false, message: 'Order not found' });
@@ -327,7 +328,6 @@ const getSingleOrder = async (req, res) => {
 
   res.status(200).json({ success: true, order });
 };
-
 
 module.exports = {
     placeOrder,

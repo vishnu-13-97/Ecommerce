@@ -1,157 +1,341 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import API from "../../api-helper/Axioxinstance";
+import { toast } from "react-toastify";
 
 export default function CategoryForm() {
-  const [category, setCategory] = useState({
-    name: "",
-    description: "",
-    image: "",
-  });
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [category, setCategory] = useState({ name: "", description: "" });
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview]     = useState(null);
+  const [errors, setErrors]       = useState({});
+  const [loading, setLoading]     = useState(false);
+  const [fetching, setFetching]   = useState(false);
+
   const navigate = useNavigate();
   const { categoryId } = useParams();
+  const isEdit = Boolean(categoryId);
 
-  // Fetch category if editing
+  /* ── Fetch category in edit mode ── */
   useEffect(() => {
-    if (categoryId) {
-      API.get(`/category/${categoryId}`)
-        .then((res) => {
-          const data = res.data.data || res.data;
-          console.log("Fetched category data:", data);
-          setCategory({
-            name: data.name || "",
-            description: data.description || "",
-            image: data.image?.url || data.image || "",
-          });
-          setPreview(data.image?.url || data.image || "");
-        })
-        .catch((err) => {
-          console.error("Error fetching category:", err);
-          setError("Failed to load category details.");
-        });
-    }
+    if (!categoryId) return;
+    const fetchCategory = async () => {
+      try {
+        setFetching(true);
+        const res  = await API.get(`/category/${categoryId}`);
+        const data = res.data.data || res.data;
+        setCategory({ name: data.name || "", description: data.description || "" });
+        setPreview(data.image?.url || data.image || null);
+      } catch {
+        toast.error("Failed to load category details.");
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchCategory();
   }, [categoryId]);
 
-  // Handle input change
+  /* ── Handlers ── */
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCategory({ ...category, [name]: value });
+    setCategory((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (errors[e.target.name]) setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
-  // Handle image file change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setCategory({ ...category, image: file });
-      setPreview(URL.createObjectURL(file));
-    }
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
+    if (errors.image) setErrors((prev) => ({ ...prev, image: "" }));
   };
 
-  // Submit form
+  const removeImage = () => { setImageFile(null); setPreview(null); };
+
+  /* ── Validation ── */
+  const validate = () => {
+    const e = {};
+    if (!category.name.trim() || category.name.length < 2)
+      e.name = "Category name must be at least 2 characters.";
+    if (category.description && category.description.length > 300)
+      e.description = "Description must be under 300 characters.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  /* ── Submit ── */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
-    setError("");
-
     try {
-      const formData = new FormData();
-      formData.append("name", category.name);
-      formData.append("description", category.description);
-      if (category.image instanceof File) {
-        formData.append("image", category.image);
-      }
-
-      if (categoryId) {
-        // Update existing category
-        await API.put(`/category/${categoryId}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+      const fd = new FormData();
+      fd.append("name", category.name);
+      fd.append("description", category.description);
+      if (imageFile instanceof File) fd.append("image", imageFile);
+      const headers = { "Content-Type": "multipart/form-data" };
+      if (isEdit) {
+        await API.put(`/category/${categoryId}`, fd, { headers });
+        toast.success("Category updated successfully!");
       } else {
-        // Create new category
-        await API.post("/category", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.post("/category", fd, { headers });
+        toast.success("Category added successfully!");
       }
-
       navigate("/admin/category");
     } catch (err) {
-      console.error("Error saving category:", err);
-      setError("Something went wrong while saving the category.");
+      toast.error(err.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ── Fetching state ── */
+  if (fetching) {
+    return (
+      <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "50vh" }}>
+        <div className="text-center">
+          <div className="spinner-border text-primary mb-3" role="status"
+            style={{ width: "3rem", height: "3rem" }} />
+          <p className="text-muted fw-medium">Loading category...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mt-5" style={{ maxWidth: "600px" }}>
-      <h3 className="text-center mb-4">
-        {categoryId ? "Edit Category" : "Add New Category"}
-      </h3>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div className="mb-3">
-          <label className="form-label">Category Name</label>
-          <input
-            type="text"
-            name="name"
-            value={category.name}
-            onChange={handleChange}
-            className="form-control"
-            placeholder="Enter category name"
-            required
-          />
+    <>
+      {/* ── Page Header ── */}
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 mb-4">
+        <div>
+          <h4 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i className={"fas " + (isEdit ? "fa-pen" : "fa-plus-circle") + " text-primary"}></i>
+            {isEdit ? "Edit Category" : "Add New Category"}
+          </h4>
+          <p className="text-muted small mb-0">
+            {isEdit ? "Update category details below" : "Fill in the details to create a new category"}
+          </p>
         </div>
+        <Link to="/admin/category"
+          className="btn btn-light btn-sm rounded-3 px-3 fw-medium d-flex align-items-center gap-2">
+          <i className="fas fa-arrow-left" style={{ fontSize: "0.8rem" }}></i> Back to Categories
+        </Link>
+      </div>
 
-        <div className="mb-3">
-          <label className="form-label">Description</label>
-          <textarea
-            name="description"
-            value={category.description}
-            onChange={handleChange}
-            className="form-control"
-            rows="3"
-            placeholder="Enter short description"
-          />
-        </div>
+      <form onSubmit={handleSubmit} encType="multipart/form-data" noValidate>
+        <div className="row g-4">
 
-        <div className="mb-3">
-          <label className="form-label">Category Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="form-control"
-          />
-        </div>
+          {/* ── LEFT COLUMN ── */}
+          <div className="col-12 col-lg-8 d-flex flex-column gap-4">
 
-        {preview && (
-          <div className="mb-3 text-center">
-            <img
-              src={preview}
-              alt="Preview"
-              className="img-thumbnail"
-              style={{ maxWidth: "200px", borderRadius: "8px" }}
-            />
+            {/* Category Info */}
+            <div className="card border-0 shadow-sm rounded-4">
+              <div className="card-body p-4">
+                <h6 className="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+                  <i className="fas fa-info-circle text-primary"></i> Category Information
+                </h6>
+                <div className="d-flex flex-column gap-3">
+
+                  {/* Name */}
+                  <div>
+                    <label htmlFor="name" className="form-label fw-medium text-dark small mb-1">
+                      Category Name <span className="text-danger">*</span>
+                    </label>
+                    <div className="input-group input-group-lg">
+                      <span className={"input-group-text bg-light border-end-0 " + (errors.name ? "border-danger" : "text-muted")}>
+                        <i className={"fas fa-layer-group " + (errors.name ? "text-danger" : "")} style={{ fontSize: "0.9rem" }}></i>
+                      </span>
+                      <input id="name" type="text" name="name" value={category.name}
+                        onChange={handleChange} placeholder="e.g. Electronics, Clothing, Books"
+                        className={"form-control bg-light border-start-0 " + (errors.name ? "border-danger is-invalid" : "")} />
+                    </div>
+                    {errors.name && (
+                      <div className="d-flex align-items-center gap-1 mt-1">
+                        <i className="fas fa-exclamation-circle text-danger" style={{ fontSize: "0.72rem" }}></i>
+                        <small className="text-danger">{errors.name}</small>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label htmlFor="description" className="form-label fw-medium text-dark small mb-1">
+                      Description
+                      <span className="text-muted ms-1" style={{ fontSize: "0.72rem" }}>(optional)</span>
+                    </label>
+                    <div className="input-group input-group-lg">
+                      <span className={"input-group-text bg-light border-end-0 align-items-start pt-3 " + (errors.description ? "border-danger" : "text-muted")}>
+                        <i className={"fas fa-align-left " + (errors.description ? "text-danger" : "")} style={{ fontSize: "0.9rem" }}></i>
+                      </span>
+                      <textarea id="description" name="description" value={category.description}
+                        onChange={handleChange} rows={4}
+                        placeholder="Short description about this category..."
+                        className={"form-control bg-light border-start-0 " + (errors.description ? "border-danger is-invalid" : "")} />
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center mt-1">
+                      {errors.description ? (
+                        <div className="d-flex align-items-center gap-1">
+                          <i className="fas fa-exclamation-circle text-danger" style={{ fontSize: "0.72rem" }}></i>
+                          <small className="text-danger">{errors.description}</small>
+                        </div>
+                      ) : <span />}
+                      <small className={"ms-auto " + (category.description.length > 280 ? "text-danger" : "text-muted")}>
+                        {category.description.length}/300
+                      </small>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="card border-0 shadow-sm rounded-4">
+              <div className="card-body p-4">
+                <h6 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                  <i className="fas fa-image text-primary"></i> Category Image
+                </h6>
+                <p className="text-muted small mb-3">PNG, JPG · Max 5MB · Recommended 400×400px</p>
+
+                {!preview ? (
+                  /* Upload zone */
+                  <label htmlFor="imageInput"
+                    className="d-flex flex-column align-items-center justify-content-center rounded-4 border border-2 p-4 text-center"
+                    style={{ borderStyle: "dashed", borderColor: "#c7d3e8", background: "#f8fafc", cursor: "pointer", transition: "border-color 0.2s" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = "#0d6efd"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "#c7d3e8"}>
+                    <div className="d-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 mb-2"
+                      style={{ width: 52, height: 52 }}>
+                      <i className="fas fa-cloud-upload-alt text-primary" style={{ fontSize: "1.3rem" }}></i>
+                    </div>
+                    <p className="fw-semibold text-dark small mb-1">Click to upload image</p>
+                    <p className="text-muted mb-0" style={{ fontSize: "0.75rem" }}>or drag and drop here</p>
+                    <input id="imageInput" type="file" accept="image/*"
+                      className="d-none" onChange={handleImageChange} />
+                  </label>
+                ) : (
+                  /* Preview */
+                  <div className="d-flex align-items-center gap-4 p-3 rounded-4 border bg-light">
+                    <div className="rounded-3 overflow-hidden border bg-white flex-shrink-0"
+                      style={{ width: 90, height: 90 }}>
+                      <img src={preview} alt="Category preview"
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                    <div className="flex-grow-1 min-width-0">
+                      <p className="fw-semibold text-dark mb-1 small text-truncate">
+                        {imageFile ? imageFile.name : "Current image"}
+                      </p>
+                      <p className="text-muted mb-2" style={{ fontSize: "0.75rem" }}>
+                        {imageFile ? (imageFile.size / 1024).toFixed(1) + " KB" : "Existing image"}
+                      </p>
+                      <div className="d-flex gap-2">
+                        <label htmlFor="imageInput"
+                          className="btn btn-outline-primary btn-sm rounded-3 fw-medium d-flex align-items-center gap-1"
+                          style={{ cursor: "pointer" }}>
+                          <i className="fas fa-redo" style={{ fontSize: "0.7rem" }}></i> Change
+                          <input id="imageInput" type="file" accept="image/*"
+                            className="d-none" onChange={handleImageChange} />
+                        </label>
+                        <button type="button"
+                          className="btn btn-outline-danger btn-sm rounded-3 fw-medium d-flex align-items-center gap-1"
+                          onClick={removeImage}>
+                          <i className="fas fa-trash-alt" style={{ fontSize: "0.7rem" }}></i> Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
 
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
-          {loading
-            ? "Saving..."
-            : categoryId
-            ? "Update Category"
-            : "Add Category"}
-        </button>
+          {/* ── RIGHT COLUMN ── */}
+          <div className="col-12 col-lg-4 d-flex flex-column gap-4">
+
+            {/* Live Preview Card */}
+            <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+              <div className="card-header border-0 py-3 px-4"
+                style={{ background: "linear-gradient(135deg,#0d6efd,#003db5)" }}>
+                <h6 className="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                  <i className="fas fa-eye"></i> Live Preview
+                </h6>
+              </div>
+              <div className="card-body p-4 text-center">
+                {/* Image preview */}
+                <div className="rounded-3 overflow-hidden border bg-light mx-auto mb-3 d-flex align-items-center justify-content-center"
+                  style={{ width: 90, height: 90 }}>
+                  {preview ? (
+                    <img src={preview} alt="Category preview"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <i className="fas fa-layer-group text-muted" style={{ fontSize: "1.8rem", opacity: 0.3 }}></i>
+                  )}
+                </div>
+                <h6 className="fw-bold text-dark mb-1">
+                  {category.name || (
+                    <span className="text-muted fst-italic" style={{ opacity: 0.5 }}>Category name</span>
+                  )}
+                </h6>
+                <p className="text-muted small mb-0" style={{
+                  display: "-webkit-box", WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical", overflow: "hidden",
+                }}>
+                  {category.description || (
+                    <span className="fst-italic" style={{ opacity: 0.5 }}>No description added</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="card border-0 shadow-sm rounded-4">
+              <div className="card-body p-4">
+                <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                  <i className="fas fa-clipboard-check text-primary"></i> Summary
+                </h6>
+                <div className="d-flex flex-column gap-0">
+                  {[
+                    { label: "Name",        value: category.name || "—" },
+                    { label: "Description", value: category.description ? category.description.slice(0, 40) + (category.description.length > 40 ? "…" : "") : "—" },
+                    { label: "Image",       value: preview ? "✓ Uploaded" : "No image",  green: !!preview },
+                    { label: "Mode",        value: isEdit ? "Editing existing" : "Creating new" },
+                  ].map(({ label, value, green }) => (
+                    <div key={label} className="d-flex justify-content-between align-items-center py-2"
+                      style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <span className="text-muted small fw-medium">{label}</span>
+                      <span className={"fw-semibold small text-truncate ms-3 " + (green ? "text-success" : "text-dark")}
+                        style={{ maxWidth: 130 }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="card border-0 shadow-sm rounded-4">
+              <div className="card-body p-4 d-flex flex-column gap-3">
+                <button type="submit" disabled={loading}
+                  className="btn btn-primary rounded-3 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm w-100">
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm" role="status"></span>
+                      {isEdit ? "Updating..." : "Saving..."}
+                    </>
+                  ) : (
+                    <>
+                      <i className={"fas " + (isEdit ? "fa-save" : "fa-plus")}></i>
+                      {isEdit ? "Update Category" : "Add Category"}
+                    </>
+                  )}
+                </button>
+                <Link to="/admin/category"
+                  className="btn btn-outline-secondary rounded-3 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 w-100">
+                  <i className="fas fa-times"></i> Cancel
+                </Link>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </form>
-    </div>
+    </>
   );
 }

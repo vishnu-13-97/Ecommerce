@@ -45,6 +45,7 @@ import ProductForm from "./pages/admin/AdminProductForm";
 import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import SingleOrder from "./pages/SingleOrderDetails";
+import CategoryPage from "./pages/CategoryPage";
 
 const App = () => {
   const location = useLocation();
@@ -68,7 +69,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/product/:id" element={<ProductDetails />} />
-
+        <Route path="/category/:name" element={<CategoryPage />} />
         {/* ================= USER PROTECTED ROUTES ================= */}
         <Route element={<ProtectedUserRoute />}>
           <Route path="/profile" element={<Profile />} />
