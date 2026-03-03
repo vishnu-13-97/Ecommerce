@@ -295,7 +295,7 @@ const SingleOrder = () => {
                         className="d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 flex-shrink-0"
                         style={{ width: 44, height: 44 }}
                       >
-                        <i className="fas fa-home text-primary"></i>
+                        <i className="fas fa-home text-white"></i>
                       </div>
                       <div>
                         <p className="fw-semibold text-dark mb-1">{name}</p>

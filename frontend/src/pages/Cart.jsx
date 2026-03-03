@@ -78,7 +78,7 @@ const Cart = () => {
       <div className="d-flex align-items-center justify-content-center bg-light" style={{ minHeight: "70vh" }}>
         <div className="text-center px-4">
           <div
-            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 mb-4"
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-10 mb-4"
             style={{ width: 100, height: 100 }}
           >
             <i className="fas fa-shopping-bag text-primary" style={{ fontSize: "2.5rem" }}></i>

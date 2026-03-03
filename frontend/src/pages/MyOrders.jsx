@@ -293,7 +293,7 @@ const MyOrders = () => {
                             )}
                             <div>
                               <p className="mb-0 fw-medium text-dark small">{item.product?.name}</p>
-                              <span className="badge bg-secondary bg-opacity-10 text-secondary rounded-pill" style={{ fontSize: "0.68rem" }}>
+                              <span className="badge bg-secondary bg-opacity-10 text-white rounded-pill" style={{ fontSize: "0.68rem" }}>
                                 Qty: {item.quantity}
                               </span>
                             </div>

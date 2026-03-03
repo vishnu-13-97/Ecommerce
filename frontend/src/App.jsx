@@ -46,6 +46,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import SingleOrder from "./pages/SingleOrderDetails";
 import CategoryPage from "./pages/CategoryPage";
+import Shop from "./pages/shop";
 
 const App = () => {
   const location = useLocation();
@@ -67,6 +68,7 @@ const App = () => {
         <Route path="/testimonial" element={<Testimonial />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/shop" element={<Shop />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/category/:name" element={<CategoryPage />} />

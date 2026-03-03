@@ -48,11 +48,25 @@ const ProductDetails = () => {
     }
   };
 
-  /* ── Buy Now ── */
-  const handleBuyNow = () => {
-    if (!user) navigate(`/login?redirect=/payment/${product._id}`);
-    else navigate(`/payment/${product._id}`);
-  };
+const handleBuyNow = () => {
+  if (!user) {
+    navigate(`/login?redirect=/checkout`);
+    return;
+  }
+  // Store the product in location state so Checkout can read it
+  navigate("/checkout", {
+    state: {
+      buyNow: true,
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url || "",
+        quantity: 1,
+      },
+    },
+  });
+};
 
   /* ── Loading ── */
   if (loading) {
@@ -216,7 +230,7 @@ const ProductDetails = () => {
                       <div className="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
                         <div className="d-flex align-items-center justify-content-center rounded-2 bg-primary bg-opacity-10 flex-shrink-0"
                           style={{ width: 30, height: 30 }}>
-                          <i className={"fas " + icon + " text-primary"} style={{ fontSize: "0.75rem" }}></i>
+                          <i className={"fas " + icon + " text-white"} style={{ fontSize: "0.75rem" }}></i>
                         </div>
                         <div className="min-width-0">
                           <p className="text-muted mb-0" style={{ fontSize: "0.68rem" }}>{label}</p>
