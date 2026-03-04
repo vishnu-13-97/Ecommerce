@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-
+import API from "../api-helper/Axioxinstance";
 const Signup = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -11,39 +11,64 @@ const Signup = () => {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-  const { user, register } = useAuth();
+  const { user, register,loginWithGoogle } = useAuth();
 
   useEffect(() => {
     if (user) navigate("/");
   }, [user]);
 
-  useEffect(() => {
-    const initializeGoogleSignUp = () => {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: "YOUR_GOOGLE_CLIENT_ID",
-          callback: handleGoogleResponse,
-        });
-        window.google.accounts.id.renderButton(
-          document.getElementById("googleSignupDiv"),
-          { theme: "outline", size: "large", width: "100%" }
-        );
-      }
-    };
+useEffect(() => {
+  const handleGoogleResponse = async (response) => {
+    try {
+      setLoading(true);
+      setMessage({ text: "", type: "" });
 
-    const handleGoogleResponse = (response) => {
-      console.log("Google Token:", response.credential);
-    };
+      const res = await API.post("/auth/google", {
+        token: response.credential,
+      });
 
-    if (!window.google) {
-      const script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.onload = initializeGoogleSignUp;
-      document.body.appendChild(script);
-    } else {
-      initializeGoogleSignUp();
+      await loginWithGoogle(res.data);
+      setMessage({ text: "Google signup successful! Redirecting...", type: "success" });
+      setTimeout(() => navigate("/"), 1500);
+
+    } catch (err) {
+      const errMsg = err?.response?.data?.message || "Google signup failed.";
+      setMessage({ text: errMsg, type: "danger" });
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
+
+  const initializeGoogleSignUp = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID, // ← env var
+        callback: handleGoogleResponse,
+      });
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleSignupDiv"),
+        { theme: "outline", size: "large" } // ← removed invalid width: "100%"
+      );
+    }
+  };
+
+  if (!window.google) {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogleSignUp;
+    document.body.appendChild(script);
+  } else {
+    initializeGoogleSignUp();
+  }
+
+  return () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.cancel();
+    }
+  };
+}, [navigate, loginWithGoogle]);
 
   const getPasswordStrength = (pwd) => {
     let score = 0;

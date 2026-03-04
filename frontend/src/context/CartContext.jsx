@@ -10,12 +10,14 @@ export const CartProvider = ({ children }) => {
     try {
       const res = await API.get("/user/cart");
 
-      console.log("Cart API response:", res.data);
+      
 
       const totalItems = res.data?.data?.totalItems || 0;
 
       setCartCount(totalItems);
     } catch (error) {
+      console.log(error);
+      
       setCartCount(0);
     }
   };

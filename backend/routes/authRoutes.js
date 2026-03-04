@@ -145,6 +145,8 @@ router.post('/reset-password',authController.resetPassword);
  */
 router.post('/login', LoginLimiter, validate(loginSchema), authController.login);
 
+router.post("/google", authController.googleLogin);
+
 /**
  * @swagger
  * /auth/profile:

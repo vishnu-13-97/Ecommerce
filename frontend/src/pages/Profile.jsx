@@ -166,7 +166,7 @@ const Profile = () => {
                         className="d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 flex-shrink-0"
                         style={{ width: 38, height: 38 }}
                       >
-                        <i className={`fas ${icon} text-primary`} style={{ fontSize: "0.85rem" }}></i>
+                        <i className={`fas ${icon} text-white`} style={{ fontSize: "0.85rem" }}></i>
                       </div>
                       <div className="min-width-0">
                         <p className="text-muted mb-0" style={{ fontSize: "0.72rem" }}>{label}</p>

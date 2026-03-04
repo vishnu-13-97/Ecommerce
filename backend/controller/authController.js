@@ -6,6 +6,11 @@ const bcrypt = require('bcrypt');
 const cloudinary = require('../config/cloudinary')
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
+const { OAuth2Client } = require("google-auth-library")
+
+
+// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 const cookieName = process.env.COOKIE_NAME || 'token';
 // -------------------- REGISTER --------------------
@@ -375,6 +380,74 @@ const logOut = (req, res) => {
 
 
 
+const googleLogin = async (req, res) => {
+  try {
+    const { token: googleToken } = req.body; // ✅ rename to avoid conflict
+
+
+       const client = new OAuth2Client(); 
+     console.log("Received token:", googleToken?.substring(0, 20), "...");
+    console.log("Client ID:", process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, picture, sub: googleId } = ticket.getPayload();
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        avatar: { url: picture },  // ✅ match your avatar schema {url, public_id}
+        isVerified: true,
+        password: null,
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    // ✅ use jwtToken — no conflict now
+    const jwtToken = jwt.sign(
+      { id: user._id, name: user.name, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d", issuer: "yourapp.com", audience: user.email }
+    );
+
+    console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+    const cookieName = process.env.COOKIE_NAME || "token";
+    res.cookie(cookieName, jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" || false,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      signed: true, // ✅ matches your existing login cookie setup
+    });
+
+    res.status(200).json({
+      message: "Google login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar?.url || null,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+      console.error("Full error:", err);
+    logger.error("Google auth error:", err.message);
+    res.status(401).json({ message: "Invalid Google token" });
+  }
+};
+
 module.exports = {
   register,
   verifyOtp,
@@ -384,5 +457,6 @@ module.exports = {
   userProfile,
   updateUserProfile,
   logOut,
+  googleLogin
  
 };

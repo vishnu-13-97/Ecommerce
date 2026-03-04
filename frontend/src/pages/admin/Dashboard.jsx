@@ -52,7 +52,8 @@ export default function Dashboard() {
         setSalesData(weeklySales);
       }
     } catch (err) {
-      console.log("Dashboard fetch failed", err);
+     console.log(err);
+     
     } finally {
       setLoading(false);
     }

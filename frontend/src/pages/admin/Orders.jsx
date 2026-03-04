@@ -106,7 +106,7 @@ export default function Orders() {
                 { label: "Pending",   bg: "warning", text: "dark" },
                 { label: "Delivered", bg: "success", text: "white" },
                 { label: "Cancelled", bg: "danger",  text: "white" },
-              ].map(({ label, bg, text }) => (
+              ].map(({ label, bg}) => (
                 <button
                   key={label}
                   className={"btn btn-sm rounded-pill px-3 fw-medium " + (statusFilter === label ? `btn-${bg}` : `btn-outline-${bg}`)}

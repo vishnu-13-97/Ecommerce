@@ -5,53 +5,57 @@ const Order = require("../../models/order");
 const Product = require("../../models/products");
 const razorpay= require('../../config/razorpay')
 const crypto = require('crypto');
-
 const placeOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { addressId, paymentMethod } = req.body;
+    const { addressId, paymentMethod, buyNow, productId, quantity } = req.body;
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
-    }
-
-    const shippingAddress = await Address.findOne({
-      _id: addressId,
-      user: userId,
-    });
-
+    const shippingAddress = await Address.findOne({ _id: addressId, user: userId });
     if (!shippingAddress) {
       return res.status(404).json({ message: "Shipping address not found" });
     }
 
     let totalAmount = 0;
-    const orderItems = [];
+    let orderItems = [];
+    let cartToClear = null;
 
-    for (const item of cart.items) {
-      const product = item.product;
+    // ── BUY NOW FLOW ──
+    if (buyNow && productId) {
+      const product = await Product.findById(productId);
+      if (!product) return res.status(404).json({ message: "Product not found" });
 
-      if (product.stock < item.quantity) {
-        return res.status(400).json({
-          message: `Not enough stock for ${product.name}`,
-        });
+      const qty = quantity || 1;
+      if (product.stock < qty) {
+        return res.status(400).json({ message: `Not enough stock for ${product.name}` });
       }
 
-      totalAmount += product.price * item.quantity;
+      totalAmount = product.price * qty;
+      orderItems = [{ product: product._id, price: product.price, quantity: qty }];
 
-      orderItems.push({
-        product: product._id,
-        price: product.price,
-        quantity: item.quantity,
-      });
+      // ── CART FLOW ──
+    } else {
+      const cart = await Cart.findOne({ user: userId }).populate("items.product");
+      if (!cart || cart.items.length === 0) {
+        return res.status(400).json({ message: "Cart is empty" });
+      }
+
+      for (const item of cart.items) {
+        const product = item.product;
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ message: `Not enough stock for ${product.name}` });
+        }
+        totalAmount += product.price * item.quantity;
+        orderItems.push({ product: product._id, price: product.price, quantity: item.quantity });
+      }
+
+      cartToClear = cart;
     }
 
-    // 🔥 COD FLOW
+    // ── COD ──
     if (paymentMethod === "COD") {
-      for (const item of cart.items) {
-        item.product.stock -= item.quantity;
-        await item.product.save();
+      // Deduct stock
+      for (const item of orderItems) {
+        await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
       }
 
       const order = await Order.create({
@@ -63,13 +67,16 @@ const placeOrder = async (req, res) => {
         totalPrice: totalAmount,
       });
 
-      cart.items = [];
-      await cart.save();
+      // Clear cart only for normal cart orders
+      if (cartToClear) {
+        cartToClear.items = [];
+        await cartToClear.save();
+      }
 
       return res.status(201).json({ success: true, order });
     }
 
-    // 🔵 RAZORPAY FLOW
+    // ── RAZORPAY ──
     if (paymentMethod === "Razorpay") {
       const razorpayOrder = await razorpay.orders.create({
         amount: totalAmount * 100,
@@ -81,10 +88,16 @@ const placeOrder = async (req, res) => {
         success: true,
         razorpayOrderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
+        // Pass these along so verifyPayment can use them
+        orderItems,
+        totalAmount,
+        addressId,
+        buyNow: !!buyNow,
       });
     }
 
   } catch (error) {
+    console.error("placeOrder error:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };

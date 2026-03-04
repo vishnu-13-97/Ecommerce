@@ -196,7 +196,7 @@ const Hero = () => {
           />
 
           {/* Caption */}
-          <div className="position-absolute bottom-0 start-0 p-4" style={{marginLeft:"7%"}}> 
+          {/* <div className="position-absolute bottom-0 start-0 p-4" style={{marginLeft:"7%"}}> 
             <Link
               to={`/category/${cat.slug || cat.name?.toLowerCase()}`}
               className="text-decoration-none"
@@ -210,7 +210,7 @@ const Hero = () => {
               </span>
 
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
     ))

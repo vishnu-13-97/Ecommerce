@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import API from "../api-helper/Axioxinstance";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -10,7 +10,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, login } = useAuth();
+  const { user, login,loginWithGoogle } = useAuth();
 
   const redirectPath =
     new URLSearchParams(location.search).get("redirect") || "/";
@@ -21,29 +21,29 @@ const Login = () => {
 
   useEffect(() => {
     const handleGoogleResponse = async (response) => {
+
+   
+      
       try {
-        const res = await fetch("http://localhost:5000/api/auth/google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: response.credential }),
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setMessage({ text: "Google login successful! Redirecting...", type: "success" });
-          setTimeout(() => navigate(redirectPath), 1500);
-        } else {
-          setMessage({ text: data.message || "Google login failed.", type: "danger" });
-        }
-      } catch (err) {
-        setMessage({ text: "Something went wrong during Google login.", type: "danger" });
-      }
+  setLoading(true);
+  const res = await API.post("/auth/google", {
+    token: response.credential,
+  });
+  await loginWithGoogle(res.data);
+  setMessage({ text: "Google login successful! Redirecting...", type: "success" });
+  setTimeout(() => navigate(redirectPath), 1500);
+} catch (err) {
+  const errMsg = err?.response?.data?.message || "Google login failed.";
+  setMessage({ text: errMsg, type: "danger" });
+} finally {
+  setLoading(false);
+}
     };
 
     const initializeGoogleSignIn = () => {
       if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
-          client_id: "YOUR_GOOGLE_CLIENT_ID",
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
         });
         window.google.accounts.id.renderButton(

@@ -25,16 +25,28 @@ const Checkout = () => {
 
   const fetchData = async () => {
     try {
-      const [cartRes, addressRes] = await Promise.all([
-        API.get("/user/cart",    { withCredentials: true }),
-        API.get("/user/address", { withCredentials: true }),
-      ]);
-      setCart(cartRes.data.data);
-      setAddresses(addressRes.data.addresses || []);
-      if (addressRes.data.addresses?.length > 0)
-        setSelectedAddress(addressRes.data.addresses[0]._id);
-    } catch { toast.error("Failed to load checkout data"); }
-    finally { setLoading(false); }
+      if (buyNow) {
+        // In buyNow mode — only fetch addresses, skip cart
+        const addressRes = await API.get("/user/address", { withCredentials: true });
+        setAddresses(addressRes.data.addresses || []);
+        if (addressRes.data.addresses?.length > 0)
+          setSelectedAddress(addressRes.data.addresses[0]._id);
+      } else {
+        // Normal cart checkout — fetch both
+        const [cartRes, addressRes] = await Promise.all([
+          API.get("/user/cart",    { withCredentials: true }),
+          API.get("/user/address", { withCredentials: true }),
+        ]);
+        setCart(cartRes.data.data);
+        setAddresses(addressRes.data.addresses || []);
+        if (addressRes.data.addresses?.length > 0)
+          setSelectedAddress(addressRes.data.addresses[0]._id);
+      }
+    } catch {
+      toast.error("Failed to load checkout data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddAddress = async () => {
@@ -59,7 +71,6 @@ const Checkout = () => {
     try {
       setPlacingOrder(true);
 
-      // ── Build payload ──
       const payload = {
         addressId:     selectedAddress,
         paymentMethod,
@@ -230,14 +241,12 @@ const Checkout = () => {
                           cursor: "pointer", transition: "all 0.15s",
                         }}
                         onClick={() => setSelectedAddress(addr._id)}>
-                        {/* Radio */}
                         <div className={"d-flex align-items-center justify-content-center rounded-circle border-2 mt-1 flex-shrink-0 " + (selectedAddress === addr._id ? "border-primary bg-primary" : "border bg-white")}
                           style={{ width: 18, height: 18 }}>
                           {selectedAddress === addr._id && (
                             <div className="rounded-circle bg-white" style={{ width: 6, height: 6 }}></div>
                           )}
                         </div>
-                        {/* Address details */}
                         <div className="flex-grow-1">
                           <div className="d-flex align-items-center gap-2 mb-1">
                             <p className="fw-bold text-dark mb-0 small">{addr.fullName}</p>
