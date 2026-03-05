@@ -237,14 +237,14 @@ const login = async (req, res) => {
     );
 
     // 8️⃣ Set cookie
-    res.cookie(cookieName, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production"||false,
-      sameSite: "Lax",
-      path: "/", 
-      maxAge: cookieExpiry,
-      signed: true,
-    });
+   res.cookie(cookieName, token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+  path: "/",
+  maxAge: cookieExpiry,
+  signed: true,
+});
 
     // 9️⃣ Success response
     logger.info(`User ${email} logged in successfully (rememberMe: ${!!rememberMe})`);
