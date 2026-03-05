@@ -46,7 +46,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import SingleOrder from "./pages/SingleOrderDetails";
 import CategoryPage from "./pages/CategoryPage";
-import Shop from "./pages/shop";
+import Shop from "./pages/Shop";
 
 const App = () => {
   const location = useLocation();
