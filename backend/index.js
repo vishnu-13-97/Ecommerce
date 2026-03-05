@@ -34,7 +34,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // ✅ Enable CORS
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://ecommerce-nu-seven-26.vercel.app/'],
+  origin: ['http://localhost:5173', 'https://ecommerce-nu-seven-26.vercel.app'],
   credentials: true,
 }));
 
